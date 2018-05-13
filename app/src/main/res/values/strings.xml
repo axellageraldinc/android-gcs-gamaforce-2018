@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">GCS Gamaforce 2018 Android</string>
+
+    <string-array name="baud_rate_list">
+        <item>9600</item>
+        <item>14400</item>
+        <item>19200</item>
+        <item>38400</item>
+        <item>57600</item>
+        <item>128000</item>
+        <item>256000</item>
+    </string-array>
 </resources>
