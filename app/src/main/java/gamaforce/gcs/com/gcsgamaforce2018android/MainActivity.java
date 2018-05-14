@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -25,6 +26,8 @@ import com.hoho.android.usbserial.util.SerialInputOutputManager;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -35,6 +38,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private List<UsbSerialPort> ports = new ArrayList<>();
 
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+
     private Spinner mSpinnerBaudRate, mSpinnerUsbPort;
     private Button mBtnConnect, mBtnRefresh;
     private TextView mTxtLog;
@@ -43,12 +48,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             new SerialInputOutputManager.Listener() {
                 @Override
                 public void onNewData(final byte[] data) {
-                    MainActivity.this.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            MainActivity.this.updateData(data);
-                        }
-                    });
+                    try {
+                        Thread.sleep(500);
+                        MainActivity.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                MainActivity.this.updateData(data);
+                            }
+                        });
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
 
                 @Override
@@ -95,7 +105,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                refreshUsb();
 //                break;
             case R.id.button_connect:
-                connectToUsb();
+                if (sSerialPort == null) {
+                    connectToUsb();
+                } else {
+                    closeConnection();
+                }
                 break;
         }
     }
@@ -134,14 +148,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        }.execute((Void) null);
 //    }
 
-    private boolean connectToUsb() {
+    private void connectToUsb() {
         int baudRate = Integer.parseInt(mSpinnerBaudRate.getSelectedItem().toString());
 
         // Find all available drivers from attached devices.
         UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
         List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager);
         if (availableDrivers.isEmpty()) {
-            return false;
+            return;
         }
 
         // Open a connection to the first available driver.
@@ -149,7 +163,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         UsbDeviceConnection connection = manager.openDevice(driver.getDevice());
         if (connection == null) {
             // You probably need to call UsbManager.requestPermission(driver.getDevice(), ..)
-            return false;
+            return;
         }
 
         // Read some data! Most have just one port (port 0).
@@ -159,19 +173,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             sSerialPort.setParameters(baudRate, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
             SerialInputOutputManager serialManager =
                     new SerialInputOutputManager(sSerialPort, serialListener);
+            mExecutor.submit(serialManager);
             byte buffer[] = new byte[16];
             int numBytesRead = sSerialPort.read(buffer, 1000);
             Log.d(USB_TAG, "Read " + numBytesRead + " bytes.");
-            return true;
+            Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
+            mBtnConnect.setText("STOP");
         } catch (IOException e) {
             Log.d(USB_TAG, e.getMessage());
-            return false;
+            Toast.makeText(this, "Gagal: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            sSerialPort = null;
+            mBtnConnect.setText("Connect");
+            return;
+        }
+    }
+
+    private void closeConnection() {
+        if (sSerialPort != null) {
+            try {
+                sSerialPort.close();
+                mBtnConnect.setText("Connect");
+            } catch (IOException e) {
+                Toast.makeText(this, "Gagal: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
     private void updateData(byte[] data) {
-        final String message = "Read " + data.length + " bytes: \n"
-                + HexDump.dumpHexString(data) + "\n\n";
+        String message = new String(data) + "\n\n";
+//        Toast.makeText(this, "Terkoneksi" + message, Toast.LENGTH_SHORT).show();
         mTxtLog.append(message);
+        mTxtLog.setMovementMethod(new ScrollingMovementMethod());
     }
 }
