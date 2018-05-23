@@ -40,6 +40,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
+    private String tempString = "";
+
     private Spinner mSpinnerBaudRate, mSpinnerUsbPort;
     private Button mBtnConnect, mBtnRefresh;
     private TextView mTxtLog;
@@ -48,17 +50,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             new SerialInputOutputManager.Listener() {
                 @Override
                 public void onNewData(final byte[] data) {
-                    try {
-                        Thread.sleep(500);
-                        MainActivity.this.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                MainActivity.this.updateData(data);
-                            }
-                        });
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    MainActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            MainActivity.this.updateData(data);
+                        }
+                    });
+//                    try {
+//                        Thread.sleep(2000);
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
                 }
 
                 @Override
@@ -175,6 +177,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     new SerialInputOutputManager(sSerialPort, serialListener);
             mExecutor.submit(serialManager);
             byte buffer[] = new byte[16];
+
             int numBytesRead = sSerialPort.read(buffer, 1000);
             Log.d(USB_TAG, "Read " + numBytesRead + " bytes.");
             Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
@@ -192,6 +195,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (sSerialPort != null) {
             try {
                 sSerialPort.close();
+                sSerialPort = null;
                 mBtnConnect.setText("Connect");
             } catch (IOException e) {
                 Toast.makeText(this, "Gagal: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -200,9 +204,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void updateData(byte[] data) {
-        String message = new String(data) + "\n\n";
-//        Toast.makeText(this, "Terkoneksi" + message, Toast.LENGTH_SHORT).show();
-        mTxtLog.append(message);
-        mTxtLog.setMovementMethod(new ScrollingMovementMethod());
+        String byteMessage = new String(data);
+        if (isDataValid(byteMessage)) {
+            tempString = byteMessage;
+            String message = tempString + "Length: " + data.length + "\n\n";
+            mTxtLog.append(message);
+            mTxtLog.setMovementMethod(new ScrollingMovementMethod());
+        }
+    }
+
+    private boolean isDataValid(String data) {
+        String[] dataSplit = data.split("#");
+        return dataSplit.length == 7;
     }
 }
