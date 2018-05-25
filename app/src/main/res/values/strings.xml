@@ -1,3 +1,12 @@
 <resources>
-    <string name="app_name">GCS Gamaforce 2018 Android</string>
+    <string name="app_name">GCS Gamaforce</string>
+
+    <string name="title_map">Maps</string>
+    <string name="title_attitude">Attitude</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="GOOGLE_MAPS_API_KEY">AIzaSyAhVHFnbCjmXaC3wZbvjboexe4BfvaQzZs</string>
+
 </resources>
