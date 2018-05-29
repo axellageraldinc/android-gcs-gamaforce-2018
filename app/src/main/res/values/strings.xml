@@ -9,4 +9,16 @@
 
     <string name="GOOGLE_MAPS_API_KEY">AIzaSyAhVHFnbCjmXaC3wZbvjboexe4BfvaQzZs</string>
 
+    <string name="action_connect">Connect</string>
+
+    <string-array name="baud_rate_list">
+        <item>9600</item>
+        <item>14400</item>
+        <item>19200</item>
+        <item>38400</item>
+        <item>57600</item>
+        <item>128000</item>
+        <item>256000</item>
+    </string-array>
+
 </resources>
