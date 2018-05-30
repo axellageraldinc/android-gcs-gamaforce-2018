@@ -29,6 +29,4 @@
             app:itemTextColor="@color/colorPrimary"
             app:menu="@menu/navigation" />
     </FrameLayout>
-
-
 </LinearLayout>

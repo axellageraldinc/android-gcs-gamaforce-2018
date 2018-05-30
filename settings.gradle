@@ -1,1 +1,3 @@
-include ':app'
+include ':app', ':usb_serial'
+project(':usb_serial').projectDir = file('libs/usb-serial-for-android')
+
