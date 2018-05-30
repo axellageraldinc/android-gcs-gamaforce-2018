@@ -1,4 +1,4 @@
-package gamaforce.gcs.com.gcsgamaforce2018android;
+package gamaforce.gcs.com.gcsgamaforce2018android.view;
 
 
 import android.os.Bundle;
@@ -6,6 +6,8 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import gamaforce.gcs.com.gcsgamaforce2018android.R;
 
 
 public class AttitudeFragment extends Fragment { ;
@@ -17,7 +19,6 @@ public class AttitudeFragment extends Fragment { ;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
     }
 
     @Override

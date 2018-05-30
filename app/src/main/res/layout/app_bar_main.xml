@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context=".MainActivity">
+    tools:context=".view.MainActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -17,14 +17,14 @@
             android:layout_height="?attr/actionBarSize"
             app:theme="@style/ToolBarStyle">
 
-            <!--<TextView-->
-                <!--android:id="@+id/toolbar_title"-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:text="@string/app_name"-->
-                <!--android:textColor="@color/colorPrimary"-->
-                <!--style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"-->
-                <!--android:layout_gravity="center" />-->
+            <TextView
+                android:id="@+id/toolbar_title"
+                style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/app_name"
+                android:textColor="@android:color/white" />
 
         </android.support.v7.widget.Toolbar>
 
@@ -33,7 +33,7 @@
     <FrameLayout
         android:id="@+id/frame"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"></FrameLayout>
+        android:layout_height="wrap_content">
+    </FrameLayout>
 
 </android.support.design.widget.CoordinatorLayout>
