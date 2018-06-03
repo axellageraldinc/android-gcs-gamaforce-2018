@@ -44,7 +44,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="15dp"
             android:background="@drawable/button_primary"
-            android:text="Connect"
+            android:text="CONNECT"
             android:textColor="@color/colorBackground"
             android:textSize="18sp"
             android:textStyle="bold" />

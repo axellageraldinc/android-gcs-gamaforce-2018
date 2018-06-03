@@ -9,7 +9,7 @@
 
     <string name="GOOGLE_MAPS_API_KEY">AIzaSyANuDmFKzWREAQOBnUSCHOQw2G6R9rqIx4</string>
 
-    <string name="action_connect">Connect</string>
+    <string name="menu_connect_disconnect">Connect/Disconnect</string>
 
     <string-array name="baud_rate_list">
         <item>9600</item>

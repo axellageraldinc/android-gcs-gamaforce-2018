@@ -29,14 +29,9 @@ public class PlaneMapsFragment extends Fragment implements OnMapReadyCallback {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
+        System.out.println("Inside on Create View Plane Maps Fragment");
         view = inflater.inflate(R.layout.fragment_map, container, false);
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -52,21 +47,12 @@ public class PlaneMapsFragment extends Fragment implements OnMapReadyCallback {
             }
         } else {
             googleMap.setMyLocationEnabled(true);
-//        googleMap = googleMap;
-//        if(android.os.Build.VERSION.SDK_INT > 23) {
-//            if (ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) ==
-//                    PackageManager.PERMISSION_GRANTED &&
-//                    ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
-//                            PackageManager.PERMISSION_GRANTED) {
-//
-//            } else {
-//                ActivityCompat.requestPermissions(getActivity(), new String[]{
-//                                Manifest.permission.ACCESS_FINE_LOCATION,
-//                                Manifest.permission.ACCESS_COARSE_LOCATION},
-//                        1);
-//            }
-//        }
-//        googleMap.setMyLocationEnabled(true);
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        System.out.println("Inside on Resume Plane Maps Fragment");
     }
 }

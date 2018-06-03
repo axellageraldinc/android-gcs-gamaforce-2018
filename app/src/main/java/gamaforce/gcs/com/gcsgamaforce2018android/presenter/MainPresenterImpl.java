@@ -4,6 +4,7 @@ import android.content.Context;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
@@ -43,9 +44,12 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
             usbSerialPort = usbSerialDriver.getPorts().get(0);
             try {
                 usbSerialPort.open(connection);
+                Toast.makeText(context, "Successfully connected to USB...", Toast.LENGTH_SHORT).show();
+                mainView.dismissDialogConnect();
                 usbSerialPort.setParameters(Integer.parseInt(baudRate), 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
                 beginRetrievingData();
             } catch (IOException e) {
+                Toast.makeText(context, "Failed connecting to usb : " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "Error connecting to usb : " + e.getMessage());
             }
         }
@@ -55,13 +59,17 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
     public void disconnectFromUsb() {
         try {
             usbSerialPort.close();
+            mainView.dismissDialogConnect();
+            mainView.changeBtnConnectTextToConnect();
         } catch (IOException e) {
+            Toast.makeText(context, "Error disconnecting usb : " + e.getMessage(), Toast.LENGTH_SHORT).show();
             Log.e(TAG, "Error disconnecting usb : " + e.getMessage());
         }
     }
 
     @Override
     public void onNewData(byte[] data) {
+        Toast.makeText(context, "Data : " + Arrays.toString(data), Toast.LENGTH_SHORT).show();
         if(isDataValid(Arrays.toString(data))) {
             mainView.showAltitude(Double.parseDouble(parseData(1, Arrays.toString(data))));
             mainView.showYaw(Double.parseDouble(parseData(2, Arrays.toString(data))));
@@ -70,11 +78,15 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
             mainView.setDronePositionOnGoogleMaps(
                     Double.parseDouble(parseData(5, Arrays.toString(data))),
                     Double.parseDouble(parseData(6, Arrays.toString(data))));
+            mainView.setAttitudeIndicator(
+                    Double.parseDouble(parseData(3, Arrays.toString(data))),
+                    Double.parseDouble(parseData(4, Arrays.toString(data))));
         }
     }
 
     @Override
     public void onRunError(Exception e) {
+        Toast.makeText(context, "Error listening to usb port data : " + e.getMessage(), Toast.LENGTH_SHORT).show();
         Log.e(TAG, "Error listening to usb port data : " + e.getMessage());
     }
 
@@ -89,14 +101,20 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
         // Find all available drivers from attached devices.
         List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager);
         if (availableDrivers.isEmpty()) {
+            Toast.makeText(context, "No connected USB found...", Toast.LENGTH_SHORT).show();
             return null;
         }
         return availableDrivers.get(0);
     }
 
     private String parseData(int index, String data){
-        String[] dataSplit = data.split("#");
-        return dataSplit[index];
+        try {
+            String[] dataSplit = data.split("#");
+            return dataSplit[index];
+        } catch (Exception ex){
+            Toast.makeText(context, "Incorrect data format...\n" + data, Toast.LENGTH_SHORT).show();
+            return null;
+        }
     }
 
     private boolean isDataValid(String data) {

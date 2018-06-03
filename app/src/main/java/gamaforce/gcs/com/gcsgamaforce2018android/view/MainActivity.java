@@ -18,6 +18,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import gamaforce.gcs.com.gcsgamaforce2018android.R;
 import gamaforce.gcs.com.gcsgamaforce2018android.contract.MainContract;
@@ -29,11 +30,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private MainContract.Presenter mainPresenter;
 
+    private AttitudeIndicator attitudeIndicator;
     private BottomNavigationView bottomNavigationView;
     private Spinner spinnerBaudRate;
     private Button btnConnect;
     private Toolbar toolbar;
     private Dialog dialog;
+    private TextView txtAltitude, txtYaw, txtPitch, txtRoll;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +49,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void initializeWidget() {
+        attitudeIndicator = findViewById(R.id.attitude_indicator);
+
         bottomNavigationView = findViewById(R.id.navigation);
         bottomNavigationView.setOnNavigationItemSelectedListener(this);
 
@@ -56,6 +61,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
 
         initializeDialogConnectWidget();
+
+        txtAltitude = findViewById(R.id.txtAltitude);
+        txtYaw = findViewById(R.id.txtYaw);
+        txtPitch = findViewById(R.id.txtPitch);
+        txtRoll = findViewById(R.id.txtRoll);
     }
 
     private void initializeDialogConnectWidget(){
@@ -124,34 +134,57 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.button_connect:
-                mainPresenter.connectToUsb(spinnerBaudRate.getSelectedItem().toString());
+                if(btnConnect.getText().equals("CONNECT"))
+                    mainPresenter.connectToUsb(spinnerBaudRate.getSelectedItem().toString());
+                else
+                    mainPresenter.disconnectFromUsb();
                 break;
         }
     }
 
     @Override
+    public void setAttitudeIndicator(double pitch, double roll) {
+        attitudeIndicator.setAttitude(Float.parseFloat(String.valueOf(pitch)), Float.parseFloat(String.valueOf(roll)));
+    }
+
+    @Override
     public void showAltitude(double altitude) {
         //TODO : Implement here...
+        txtAltitude.setText(String.valueOf(altitude));
     }
 
     @Override
     public void showYaw(double yaw) {
         //TODO : Implement here...
+        txtYaw.setText(String.valueOf(yaw));
     }
 
     @Override
     public void showPitch(double pitch) {
         //TODO : Implement here...
+        txtPitch.setText(String.valueOf(pitch));
     }
 
     @Override
     public void showRoll(double roll) {
         //TODO : Implement here...
+        txtRoll.setText(String.valueOf(roll));
     }
 
     @Override
     public void setDronePositionOnGoogleMaps(double latitude, double longitude) {
         //TODO : Implement here...
+    }
+
+    @Override
+    public void dismissDialogConnect() {
+        dialog.dismiss();
+        btnConnect.setText("DISCONNECT");
+    }
+
+    @Override
+    public void changeBtnConnectTextToConnect() {
+        btnConnect.setText("CONNECT");
     }
 
 }

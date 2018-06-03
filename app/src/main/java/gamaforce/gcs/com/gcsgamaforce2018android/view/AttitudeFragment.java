@@ -17,15 +17,17 @@ public class AttitudeFragment extends Fragment { ;
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        System.out.println("Inside on Create View Attitude Fragment");
+        view = inflater.inflate(R.layout.fragment_attitude, container, false);
+        return view;
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        view = inflater.inflate(R.layout.fragment_attitude, container, false);
-        return view;
+    public void onResume() {
+        super.onResume();
+        System.out.println("Inside on Resume Attitude Fragment");
     }
 
 }
