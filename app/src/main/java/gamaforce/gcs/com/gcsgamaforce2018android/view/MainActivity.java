@@ -44,8 +44,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         attitudeFragment = new AttitudeFragment();
         planeMapsFragment = new PlaneMapsFragment();
         // TODO : Migrate to dagger2 injection
-        mainPresenter = new MainPresenterImpl(this, this,
-                attitudeFragment.getAttitudePresenter(), planeMapsFragment.getMapsPresenter());
+        mainPresenter = new MainPresenterImpl(this, this);
         loadFragment(planeMapsFragment);
     }
 

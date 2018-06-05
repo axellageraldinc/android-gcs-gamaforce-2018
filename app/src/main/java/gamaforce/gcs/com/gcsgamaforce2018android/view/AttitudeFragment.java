@@ -21,7 +21,6 @@ public class AttitudeFragment extends Fragment implements AttitudeContract.View 
 
     private AttitudeIndicator attitudeIndicator;
     private TextView txtAltitude, txtYaw, txtPitch, txtRoll;
-    private AttitudePresenterImpl attitudePresenter;
 
     public AttitudeFragment() {
         // Required empty public constructor
@@ -30,9 +29,8 @@ public class AttitudeFragment extends Fragment implements AttitudeContract.View 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        System.out.println("Inside on Create View Attitude Fragment");
         view = inflater.inflate(R.layout.fragment_attitude, container, false);
-        attitudePresenter = new AttitudePresenterImpl(getContext(), this);
+        attitudeIndicator = new AttitudeIndicator(getActivity());
         txtAltitude = view.findViewById(R.id.txtAltitude);
         txtYaw = view.findViewById(R.id.txtYaw);
         txtPitch = view.findViewById(R.id.txtPitch);
@@ -40,14 +38,6 @@ public class AttitudeFragment extends Fragment implements AttitudeContract.View 
 
         return view;
     }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        System.out.println("Inside on Resume Attitude Fragment");
-    }
-
-
 
     @Override
     public void setAttitudeIndicator(double pitch, double roll) {

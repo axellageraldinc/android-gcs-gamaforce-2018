@@ -26,7 +26,6 @@ public class PlaneMapsFragment extends Fragment implements OnMapReadyCallback, M
 
     private View view;
     private GoogleMap googleMap;
-    private MapsPresenterImpl mapsPresenter;
 
     public PlaneMapsFragment() {
         // Required empty public constructor
@@ -35,9 +34,7 @@ public class PlaneMapsFragment extends Fragment implements OnMapReadyCallback, M
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        System.out.println("Inside on Create View Plane Maps Fragment");
         view = inflater.inflate(R.layout.fragment_map, container, false);
-        mapsPresenter = new MapsPresenterImpl(getContext(), this);
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         return view;
@@ -53,12 +50,6 @@ public class PlaneMapsFragment extends Fragment implements OnMapReadyCallback, M
         } else {
             googleMap.setMyLocationEnabled(true);
         }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        System.out.println("Inside on Resume Plane Maps Fragment");
     }
 
     @Override
