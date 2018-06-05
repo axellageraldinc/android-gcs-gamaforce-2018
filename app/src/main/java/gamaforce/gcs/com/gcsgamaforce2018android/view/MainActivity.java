@@ -8,7 +8,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,10 +16,9 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import gamaforce.gcs.com.gcsgamaforce2018android.R;
+import gamaforce.gcs.com.gcsgamaforce2018android.contract.AttitudeContract;
 import gamaforce.gcs.com.gcsgamaforce2018android.contract.MainContract;
 import gamaforce.gcs.com.gcsgamaforce2018android.presenter.MainPresenterImpl;
 
@@ -30,27 +28,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private MainContract.Presenter mainPresenter;
 
-    private AttitudeIndicator attitudeIndicator;
     private BottomNavigationView bottomNavigationView;
     private Spinner spinnerBaudRate;
     private Button btnConnect;
     private Toolbar toolbar;
     private Dialog dialog;
-    private TextView txtAltitude, txtYaw, txtPitch, txtRoll;
+    private AttitudeFragment attitudeFragment;
+    private PlaneMapsFragment planeMapsFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initializeWidget();
+        attitudeFragment = new AttitudeFragment();
+        planeMapsFragment = new PlaneMapsFragment();
         // TODO : Migrate to dagger2 injection
-        mainPresenter = new MainPresenterImpl(this, this);
-        loadFragment(new PlaneMapsFragment());
+        mainPresenter = new MainPresenterImpl(this, this,
+                attitudeFragment.getAttitudePresenter(), planeMapsFragment.getMapsPresenter());
+        loadFragment(planeMapsFragment);
     }
 
     private void initializeWidget() {
-        attitudeIndicator = findViewById(R.id.attitude_indicator);
-
         bottomNavigationView = findViewById(R.id.navigation);
         bottomNavigationView.setOnNavigationItemSelectedListener(this);
 
@@ -61,11 +60,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
 
         initializeDialogConnectWidget();
-
-        txtAltitude = findViewById(R.id.txtAltitude);
-        txtYaw = findViewById(R.id.txtYaw);
-        txtPitch = findViewById(R.id.txtPitch);
-        txtRoll = findViewById(R.id.txtRoll);
     }
 
     private void initializeDialogConnectWidget(){
@@ -119,11 +113,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Fragment fragment;
         switch (item.getItemId()) {
             case R.id.navigation_map:
-                fragment = new PlaneMapsFragment();
+                fragment = planeMapsFragment;
                 loadFragment(fragment);
                 return true;
             case R.id.navigation_attitude:
-                fragment = new AttitudeFragment();
+                fragment = attitudeFragment;
                 loadFragment(fragment);
                 return true;
         }
@@ -140,40 +134,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     mainPresenter.disconnectFromUsb();
                 break;
         }
-    }
-
-    @Override
-    public void setAttitudeIndicator(double pitch, double roll) {
-        attitudeIndicator.setAttitude(Float.parseFloat(String.valueOf(pitch)), Float.parseFloat(String.valueOf(roll)));
-    }
-
-    @Override
-    public void showAltitude(double altitude) {
-        //TODO : Implement here...
-        txtAltitude.setText(String.valueOf(altitude));
-    }
-
-    @Override
-    public void showYaw(double yaw) {
-        //TODO : Implement here...
-        txtYaw.setText(String.valueOf(yaw));
-    }
-
-    @Override
-    public void showPitch(double pitch) {
-        //TODO : Implement here...
-        txtPitch.setText(String.valueOf(pitch));
-    }
-
-    @Override
-    public void showRoll(double roll) {
-        //TODO : Implement here...
-        txtRoll.setText(String.valueOf(roll));
-    }
-
-    @Override
-    public void setDronePositionOnGoogleMaps(double latitude, double longitude) {
-        //TODO : Implement here...
     }
 
     @Override

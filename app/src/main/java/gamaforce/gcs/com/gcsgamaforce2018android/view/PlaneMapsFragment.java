@@ -19,10 +19,14 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Marker;
 
 import gamaforce.gcs.com.gcsgamaforce2018android.R;
+import gamaforce.gcs.com.gcsgamaforce2018android.contract.MapsContract;
+import gamaforce.gcs.com.gcsgamaforce2018android.presenter.MapsPresenterImpl;
 
-public class PlaneMapsFragment extends Fragment implements OnMapReadyCallback {
-    View view;
+public class PlaneMapsFragment extends Fragment implements OnMapReadyCallback, MapsContract.View {
+
+    private View view;
     private GoogleMap googleMap;
+    private MapsPresenterImpl mapsPresenter;
 
     public PlaneMapsFragment() {
         // Required empty public constructor
@@ -33,6 +37,7 @@ public class PlaneMapsFragment extends Fragment implements OnMapReadyCallback {
                              Bundle savedInstanceState) {
         System.out.println("Inside on Create View Plane Maps Fragment");
         view = inflater.inflate(R.layout.fragment_map, container, false);
+        mapsPresenter = new MapsPresenterImpl(getContext(), this);
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         return view;
@@ -54,5 +59,10 @@ public class PlaneMapsFragment extends Fragment implements OnMapReadyCallback {
     public void onResume() {
         super.onResume();
         System.out.println("Inside on Resume Plane Maps Fragment");
+    }
+
+    @Override
+    public void setDronePositionOnGoogleMaps(double latitude, double longitude) {
+
     }
 }
