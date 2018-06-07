@@ -1,11 +1,5 @@
 <resources>
-    <string name="app_name">GCS Gamaforce</string>
-
-    <string name="title_map">Maps</string>
-    <string name="title_attitude">Attitude</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="app_name">Gamaforce Ground Control Station</string>
 
     <string name="GOOGLE_MAPS_API_KEY">AIzaSyANuDmFKzWREAQOBnUSCHOQw2G6R9rqIx4</string>
 

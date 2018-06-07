@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import gamaforce.gcs.com.gcsgamaforce2018android.contract.AttitudeContract;
 import gamaforce.gcs.com.gcsgamaforce2018android.contract.MainContract;
 
 public class MainPresenterImpl implements MainContract.Presenter, SerialInputOutputManager.Listener {
@@ -45,12 +44,13 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
             try {
                 usbSerialPort.open(connection);
                 usbSerialPort.setParameters(Integer.parseInt(baudRate), 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
-                Toast.makeText(context, "Successfully connected to USB...", Toast.LENGTH_SHORT).show();
                 mainView.dismissDialogConnect();
+                mainView.changeBtnConnectTextToDisconnect();
+                mainView.showToastMessage("Successfully connected to USB...");
                 beginRetrievingData();
             } catch (IOException e) {
-                Toast.makeText(context, "Failed connecting to usb : " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "Error connecting to usb : " + e.getMessage());
+                mainView.showToastMessage("Error connecting to USB : " + e.getMessage());
             }
         }
     }
@@ -61,24 +61,31 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
             usbSerialPort.close();
             mainView.dismissDialogConnect();
             mainView.changeBtnConnectTextToConnect();
+            mainView.showToastMessage("Disconnected from USB...");
         } catch (IOException e) {
-            Toast.makeText(context, "Error disconnecting usb : " + e.getMessage(), Toast.LENGTH_SHORT).show();
             Log.e(TAG, "Error disconnecting usb : " + e.getMessage());
+            mainView.showToastMessage("Error disconnecting usb : " + e.getMessage());
         }
     }
 
     @Override
     public void onNewData(byte[] data) {
-        String sData = new String(data);
-        Log.d(TAG, sData);
-        if(isDataValid(sData)) {
-            // TODO: Set data to maps and attitude fragment
+        String retrievedData = new String(data);
+        Log.d(TAG, retrievedData);
+        if(isDataValid(retrievedData)) {
+            mainView.showAltitude(parseData(1, retrievedData));
+            mainView.showYaw(parseData(2, retrievedData));
+            mainView.showPitch(parseData(3, retrievedData));
+            mainView.showRoll(parseData(4, retrievedData));
+            mainView.setAttitudeIndicator(parseData(3, retrievedData), parseData(4, retrievedData));
+            mainView.setDronePositionOnGoogleMaps(parseData(5, retrievedData), Double.parseDouble(removeLastChar(String.valueOf(parseData(6, retrievedData)))));
         }
     }
 
     @Override
     public void onRunError(Exception e) {
-        Log.e(TAG, "Error listening to usb port data : " + e.getMessage());
+        Log.e(TAG, "Error listening to USB : " + e.getMessage());
+        mainView.showToastMessage("Error listening to USB : " + e.getMessage());
     }
 
     private void beginRetrievingData(){
@@ -92,7 +99,7 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
         // Find all available drivers from attached devices.
         List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager);
         if (availableDrivers.isEmpty()) {
-            Toast.makeText(context, "No connected USB found...", Toast.LENGTH_SHORT).show();
+            mainView.showToastMessage("No connected USB found!");
             return null;
         }
         return availableDrivers.get(0);
@@ -105,6 +112,19 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
         } else {
             return false;
         }
+    }
+
+    private double parseData(int index, String data){
+        try {
+            String[] dataSplit = data.split("#");
+            return Double.parseDouble(dataSplit[index]);
+        } catch (Exception ex){
+            return 0;
+        }
+    }
+
+    private String removeLastChar(String str) {
+        return str.substring(0, str.length() - 1);
     }
 
 }

@@ -1,67 +1,65 @@
 package gamaforce.gcs.com.gcsgamaforce2018android.view;
 
+import android.Manifest;
 import android.app.Dialog;
-import android.support.annotation.NonNull;
-import android.support.design.widget.BottomNavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 
 import gamaforce.gcs.com.gcsgamaforce2018android.R;
-import gamaforce.gcs.com.gcsgamaforce2018android.contract.AttitudeContract;
 import gamaforce.gcs.com.gcsgamaforce2018android.contract.MainContract;
 import gamaforce.gcs.com.gcsgamaforce2018android.presenter.MainPresenterImpl;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, BottomNavigationView.OnNavigationItemSelectedListener, MainContract.View {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener, MainContract.View {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
     private MainContract.Presenter mainPresenter;
 
-    private BottomNavigationView bottomNavigationView;
+    private Dialog dialog;
     private Spinner spinnerBaudRate;
     private Button btnConnect;
-    private Toolbar toolbar;
-    private Dialog dialog;
-    private AttitudeFragment attitudeFragment;
-    private PlaneMapsFragment planeMapsFragment;
+    private FloatingActionButton btnShowDialogConnect;
+    private GoogleMap googleMap;
+    private AttitudeIndicator attitudeIndicator;
+    private TextView txtAltitude, txtYaw, txtPitch, txtRoll;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initializeWidget();
-        attitudeFragment = new AttitudeFragment();
-        planeMapsFragment = new PlaneMapsFragment();
         // TODO : Migrate to dagger2 injection
         mainPresenter = new MainPresenterImpl(this, this);
-        loadFragment(planeMapsFragment);
     }
 
     private void initializeWidget() {
-        bottomNavigationView = findViewById(R.id.navigation);
-        bottomNavigationView.setOnNavigationItemSelectedListener(this);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
 
-        toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
-        getSupportActionBar().setDisplayShowHomeEnabled(false);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        attitudeIndicator = new AttitudeIndicator(getApplicationContext());
+        txtAltitude = findViewById(R.id.txtAltitude);
+        txtYaw = findViewById(R.id.txtYaw);
+        txtPitch = findViewById(R.id.txtPitch);
+        txtRoll = findViewById(R.id.txtRoll);
 
-        initializeDialogConnectWidget();
-    }
+        btnShowDialogConnect = findViewById(R.id.btnShowDialogConnect);
+        btnShowDialogConnect.setOnClickListener(this);
 
-    private void initializeDialogConnectWidget(){
         dialog = new Dialog(MainActivity.this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog_connect);
@@ -78,63 +76,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         spinnerBaudRate.setAdapter(spinnerAdapter);
     }
 
-    private void loadFragment(Fragment fragment) {
-        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        fragmentTransaction.replace(R.id.frame_container, fragment);
-        fragmentTransaction.setCustomAnimations(android.R.anim.fade_in,
-                android.R.anim.fade_out);
-        fragmentTransaction.disallowAddToBackStack();
-        fragmentTransaction.commit();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main_menu, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_connectx) {
-            dialog.show();
-            Window window = dialog.getWindow();
-            window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            return true;
-        } else {
-            return super.onOptionsItemSelected(item);
-        }
-    }
-
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        Fragment fragment;
-        switch (item.getItemId()) {
-            case R.id.navigation_map:
-                fragment = planeMapsFragment;
-                loadFragment(fragment);
-                return true;
-            case R.id.navigation_attitude:
-                fragment = attitudeFragment;
-                loadFragment(fragment);
-                return true;
-        }
-        return false;
-    }
-
-    @Override
-    public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.button_connect:
-                if(btnConnect.getText().equals("CONNECT"))
-                    mainPresenter.connectToUsb(spinnerBaudRate.getSelectedItem().toString());
-                else
-                    mainPresenter.disconnectFromUsb();
-                break;
-        }
-    }
-
     @Override
     public void dismissDialogConnect() {
         dialog.dismiss();
@@ -146,4 +87,105 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnConnect.setText("CONNECT");
     }
 
+    @Override
+    public void changeBtnConnectTextToDisconnect() {
+        btnConnect.setText("DISCONNECT");
+    }
+
+    @Override
+    public void setAttitudeIndicator(final double pitch, final double roll) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                attitudeIndicator.setAttitude(Float.parseFloat(String.valueOf(pitch)), Float.parseFloat(String.valueOf(roll)));
+            }
+        });
+    }
+
+    @Override
+    public void showAltitude(final double altitude) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                txtAltitude.setText(String.valueOf(altitude));
+            }
+        });
+    }
+
+    @Override
+    public void showYaw(final double yaw) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                txtYaw.setText(String.valueOf(yaw));
+            }
+        });
+    }
+
+    @Override
+    public void showPitch(final double pitch) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                txtPitch.setText(String.valueOf(pitch));
+            }
+        });
+    }
+
+    @Override
+    public void showRoll(final double roll) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                txtRoll.setText(String.valueOf(roll));
+            }
+        });
+    }
+
+    @Override
+    public void setDronePositionOnGoogleMaps(double latitude, double longitude) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                //TODO : Implement here...
+            }
+        });
+    }
+
+    @Override
+    public void showToastMessage(final String message) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.button_connect:
+                if(btnConnect.getText().toString().equals("CONNECT"))
+                    mainPresenter.connectToUsb(spinnerBaudRate.getSelectedItem().toString());
+                else
+                    mainPresenter.disconnectFromUsb();
+                break;
+            case R.id.btnShowDialogConnect:
+                dialog.show();
+                break;
+        }
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        this.googleMap = googleMap;
+        if (ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 001);
+            }
+        } else {
+            googleMap.setMyLocationEnabled(true);
+        }
+    }
 }
