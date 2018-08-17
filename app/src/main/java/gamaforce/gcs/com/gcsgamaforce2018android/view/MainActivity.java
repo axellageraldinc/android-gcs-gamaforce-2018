@@ -16,9 +16,14 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import gamaforce.gcs.com.gcsgamaforce2018android.R;
 import gamaforce.gcs.com.gcsgamaforce2018android.contract.MainContract;
@@ -35,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Button btnConnect;
     private FloatingActionButton btnShowDialogConnect;
     private GoogleMap googleMap;
+    private Marker mMarker;
     private AttitudeIndicator attitudeIndicator;
     private TextView txtAltitude, txtYaw, txtPitch, txtRoll;
 
@@ -143,11 +149,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
-    public void setDronePositionOnGoogleMaps(double latitude, double longitude) {
+    public void setDronePositionOnGoogleMaps(final double latitude, final double longitude) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                //TODO : Implement here...
+                moveMarker(new LatLng(latitude, longitude));
             }
         });
     }
@@ -180,12 +186,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
+        createMarker();
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 001);
             }
         } else {
-            googleMap.setMyLocationEnabled(true);
+            this.googleMap.setMyLocationEnabled(true);
         }
+    }
+
+    private void createMarker() {
+        LatLng ugm = new LatLng(-7.7713847,110.3774998);
+        mMarker = googleMap.addMarker(new MarkerOptions()
+                .position(ugm)
+                .title("Lokasi Pesawat"));
+        googleMap.moveCamera(CameraUpdateFactory.newLatLng(ugm));
+        googleMap.animateCamera(CameraUpdateFactory.zoomTo(17));
+    }
+
+    private void moveMarker(LatLng latLng) {
+        mMarker.remove();
+        mMarker = googleMap.addMarker(new MarkerOptions()
+                .position(latLng)
+                .title("Lokasi Pesawat"));
+        googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
     }
 }
