@@ -20,8 +20,8 @@
                                     <map>
                                       <entry key="assetType" value="IMAGE" />
                                       <entry key="iconShape" value="NONE" />
-                                      <entry key="imageAsset" value="$PROJECT_DIR$/../GAMAFORCE 2017/logo putih.png" />
-                                      <entry key="outputName" value="ic_gamaforce_logo" />
+                                      <entry key="imageAsset" value="$USER_HOME$/Downloads/plane.png" />
+                                      <entry key="outputName" value="ic_plane" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -53,8 +53,8 @@
                         <option name="values">
                           <map>
                             <entry key="assetSourceType" value="FILE" />
-                            <entry key="outputName" value="ic_plane" />
-                            <entry key="sourceFile" value="D:\GCS_TD_Android\plane.svg" />
+                            <entry key="outputName" value="ic_usb_plug" />
+                            <entry key="sourceFile" value="$USER_HOME$/Downloads/usb-plug.svg" />
                           </map>
                         </option>
                       </PersistentState>

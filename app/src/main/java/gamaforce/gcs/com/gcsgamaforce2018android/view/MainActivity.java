@@ -3,12 +3,15 @@ package gamaforce.gcs.com.gcsgamaforce2018android.view;
 import android.Manifest;
 import android.app.Dialog;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.location.Location;
 import android.os.Build;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -16,14 +19,20 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import gamaforce.gcs.com.gcsgamaforce2018android.R;
 import gamaforce.gcs.com.gcsgamaforce2018android.contract.MainContract;
@@ -32,6 +41,9 @@ import gamaforce.gcs.com.gcsgamaforce2018android.presenter.MainPresenterImpl;
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener, MainContract.View {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final Integer GMAPS_REQUEST_PERMISSION = 1;
+
+    private List<LatLng> uavLocationList = new ArrayList<>();
 
     private MainContract.Presenter mainPresenter;
 
@@ -39,10 +51,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Spinner spinnerBaudRate;
     private Button btnConnect;
     private FloatingActionButton btnShowDialogConnect;
-    private GoogleMap googleMap;
-    private Marker mMarker;
     private AttitudeIndicator attitudeIndicator;
     private TextView txtAltitude, txtYaw, txtPitch, txtRoll;
+
+    private GoogleMap googleMap;
+    private Marker marker;
+    private BitmapDescriptor uavMarker;
+    private Polyline uavPathPolyline;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +84,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         dialog = new Dialog(MainActivity.this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog_connect);
+        int width = (int)(getResources().getDisplayMetrics().widthPixels*0.5);
+        int height = (int)(getResources().getDisplayMetrics().heightPixels*0.5);
+        dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
         spinnerBaudRate = dialog.findViewById(R.id.spinnerBaudRate);
         setSpinnerBaudRateContent();
         btnConnect = dialog.findViewById(R.id.button_connect);
@@ -154,6 +172,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void run() {
                 moveMarker(new LatLng(latitude, longitude));
+                drawPolyline(new LatLng(latitude, longitude));
             }
         });
     }
@@ -189,7 +208,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         createMarker();
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 001);
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, GMAPS_REQUEST_PERMISSION);
             }
         } else {
             this.googleMap.setMyLocationEnabled(true);
@@ -197,19 +216,60 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void createMarker() {
-        LatLng ugm = new LatLng(-7.7713847,110.3774998);
-        mMarker = googleMap.addMarker(new MarkerOptions()
-                .position(ugm)
-                .title("Lokasi Pesawat"));
-        googleMap.moveCamera(CameraUpdateFactory.newLatLng(ugm));
-        googleMap.animateCamera(CameraUpdateFactory.zoomTo(17));
+        if(this.uavMarker == null){
+            uavMarker = BitmapDescriptorFactory.fromResource(R.mipmap.ic_plane);
+        }
+        if(marker ==null) {
+            LatLng ugm = new LatLng(-7.7713847, 110.3774998);
+            marker = googleMap.addMarker(new MarkerOptions()
+                    .position(ugm)
+                    .flat(true)
+                    .anchor(0.5f, 0.5f)
+                    .icon(this.uavMarker)
+                    .title("Lokasi Pesawat"));
+            googleMap.moveCamera(CameraUpdateFactory.newLatLng(ugm));
+            googleMap.animateCamera(CameraUpdateFactory.zoomTo(17));
+        }
     }
 
     private void moveMarker(LatLng latLng) {
-        mMarker.remove();
-        mMarker = googleMap.addMarker(new MarkerOptions()
+        if(this.uavMarker == null){
+            uavMarker = BitmapDescriptorFactory.fromResource(R.mipmap.ic_plane);
+        }
+        marker.remove();
+        marker = googleMap.addMarker(new MarkerOptions()
                 .position(latLng)
+                .flat(true)
+                .anchor(0.5f, 0.5f)
+                .icon(this.uavMarker)
                 .title("Lokasi Pesawat"));
         googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+    }
+
+    private void drawPolyline(LatLng latLng){
+        uavLocationList.add(latLng);
+        if (uavLocationList.size() == 2) {
+            LatLng firstLocation = uavLocationList.get(0);
+            LatLng lastLocation = uavLocationList.get(1);
+
+            this.uavPathPolyline = googleMap.addPolyline(new PolylineOptions()
+                    .add(firstLocation, lastLocation)
+                    .width(30)
+                    .color(R.color.colorAccent)
+                    .geodesic(true));
+
+        } else if (uavLocationList.size() > 2) {
+            LatLng toLocation = uavLocationList.get(uavLocationList.size() - 1);
+
+            List<LatLng> points = uavPathPolyline.getPoints();
+            points.add(toLocation);
+
+            uavPathPolyline.setPoints(points);
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
     }
 }
