@@ -107,7 +107,9 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
 
     private boolean isDataValid(String data) {
         String[] dataSplit = data.split("#");
-        return dataSplit.length == 7 && dataSplit[6].contains("*");
+        return dataSplit[0].contains("0") &&
+                dataSplit.length == 8 &&
+                dataSplit[7].contains("*");
     }
 
     private double parseData(int index, String data){
