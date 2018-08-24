@@ -71,14 +71,16 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
     @Override
     public void onNewData(byte[] data) {
         String retrievedData = new String(data);
-        Log.d(TAG, retrievedData);
         if(isDataValid(retrievedData)) {
+            Log.d(TAG, "Valid data : " + retrievedData);
             mainView.showAltitude(parseData(1, retrievedData));
             mainView.showYaw(parseData(2, retrievedData));
             mainView.showPitch(parseData(3, retrievedData));
             mainView.showRoll(parseData(4, retrievedData));
             mainView.setAttitudeIndicator(parseData(3, retrievedData), parseData(4, retrievedData));
             mainView.setDronePositionOnGoogleMaps(parseData(5, retrievedData), Double.parseDouble(removeLastChar(String.valueOf(parseData(6, retrievedData)))));
+        } else{
+            Log.e(TAG, "Invalid data : " + retrievedData);
         }
     }
 
