@@ -1,3 +1,17 @@
 <resources>
-    <string name="app_name">GCS Gamaforce 2018 Android</string>
+    <string name="app_name">Gamaforce Ground Control Station</string>
+
+    <string name="GOOGLE_MAPS_API_KEY">AIzaSyANuDmFKzWREAQOBnUSCHOQw2G6R9rqIx4</string>
+
+    <string name="menu_connect_disconnect">Connect/Disconnect</string>
+
+    <string-array name="baud_rate_list">
+        <item>9600</item>
+        <item>14400</item>
+        <item>19200</item>
+        <item>38400</item>
+        <item>57600</item>
+        <item>128000</item>
+        <item>256000</item>
+    </string-array>
 </resources>
