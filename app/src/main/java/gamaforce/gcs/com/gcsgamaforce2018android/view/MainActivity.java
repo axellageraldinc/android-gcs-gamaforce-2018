@@ -10,6 +10,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -73,7 +74,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        attitudeIndicator = new AttitudeIndicator(getApplicationContext());
+        attitudeIndicator = findViewById(R.id.attitude_indicator);
         txtAltitude = findViewById(R.id.txtAltitude);
         txtYaw = findViewById(R.id.txtYaw);
         txtPitch = findViewById(R.id.txtPitch);
@@ -122,6 +123,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                Log.d(TAG, "Pitch: " + Float.parseFloat(String.valueOf(pitch)) + "\nRoll: " + Float.parseFloat(String.valueOf(roll)));
                 attitudeIndicator.setAttitude(Float.parseFloat(String.valueOf(pitch)), Float.parseFloat(String.valueOf(roll)));
             }
         });
