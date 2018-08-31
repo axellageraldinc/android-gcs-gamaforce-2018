@@ -11,6 +11,10 @@ public interface MainContract {
         void showYaw(double yaw);
         void showPitch(double pitch);
         void showRoll(double roll);
+        void showAirSpeed(double airSpeed);
+        void showBattery(double battery);
+        void showMode(String mode);
+        void showArmStatus(String armStatus);
 
         void setDronePositionOnGoogleMaps(double latitude, double longitude);
 

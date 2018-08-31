@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FloatingActionButton btnShowDialogConnect;
     // TODO : AttitudeIndicator still not working
     private AttitudeIndicator attitudeIndicator;
-    private TextView txtAltitude, txtYaw, txtPitch, txtRoll;
+    private TextView txtAltitude, txtYaw, txtPitch, txtRoll, txtAirSpeed, txtBattery, txtMode, txtArmStatus;
 
     private GoogleMap googleMap;
     private Marker marker;
@@ -79,6 +79,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         txtYaw = findViewById(R.id.txtYaw);
         txtPitch = findViewById(R.id.txtPitch);
         txtRoll = findViewById(R.id.txtRoll);
+        txtAirSpeed = findViewById(R.id.txtAirSpeed);
+        txtBattery = findViewById(R.id.txtBattery);
+        txtMode = findViewById(R.id.txtMode);
+        txtArmStatus = findViewById(R.id.txtArming);
 
         btnShowDialogConnect = findViewById(R.id.btnShowDialogConnect);
         btnShowDialogConnect.setOnClickListener(this);
@@ -165,6 +169,46 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void run() {
                 txtRoll.setText(String.valueOf(roll));
+            }
+        });
+    }
+
+    @Override
+    public void showAirSpeed(final double airSpeed) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                txtAirSpeed.setText(String.valueOf(airSpeed));
+            }
+        });
+    }
+
+    @Override
+    public void showBattery(final double battery) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                txtBattery.setText(String.valueOf(battery) + "%");
+            }
+        });
+    }
+
+    @Override
+    public void showMode(final String mode) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                txtMode.setText(mode);
+            }
+        });
+    }
+
+    @Override
+    public void showArmStatus(final String armStatus) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                txtArmStatus.setText(armStatus);
             }
         });
     }

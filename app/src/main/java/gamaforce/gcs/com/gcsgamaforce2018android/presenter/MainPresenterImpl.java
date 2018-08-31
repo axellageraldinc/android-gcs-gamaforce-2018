@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import gamaforce.gcs.com.gcsgamaforce2018android.R;
 import gamaforce.gcs.com.gcsgamaforce2018android.contract.MainContract;
 
 public class MainPresenterImpl implements MainContract.Presenter, SerialInputOutputManager.Listener {
@@ -79,6 +80,12 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
             mainView.showRoll(parseData(4, retrievedData));
             mainView.setAttitudeIndicator(parseData(3, retrievedData), parseData(4, retrievedData));
             mainView.setDronePositionOnGoogleMaps(parseData(5, retrievedData), Double.parseDouble(removeLastChar(String.valueOf(parseData(6, retrievedData)))));
+            mainView.showAirSpeed(parseData(7, retrievedData));
+            mainView.showBattery(parseData(8, retrievedData));
+            int mode = Integer.parseInt(String.valueOf(parseData(9, retrievedData)));
+            mainView.showMode(context.getResources().getStringArray(R.array.mode_list)[mode]);
+            int armStatus = Integer.parseInt(String.valueOf(parseData(11, retrievedData)));
+            mainView.showArmStatus(context.getResources().getStringArray(R.array.arm_status_list)[armStatus]);
         } else{
             Log.e(TAG, "Invalid data : " + retrievedData);
         }
