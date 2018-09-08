@@ -137,10 +137,10 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical|center_horizontal"
-                        android:text="0.0"
+                        android:text="MODE"
                         android:textAlignment="center"
                         android:textColor="@android:color/background_light"
-                        android:textSize="24sp"
+                        android:textSize="20sp"
                         android:textStyle="bold" />
 
                 </android.support.v7.widget.CardView>
@@ -168,10 +168,10 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical|center_horizontal"
-                        android:text="0.0"
+                        android:text="ARM STATUS"
                         android:textAlignment="center"
                         android:textColor="@android:color/background_light"
-                        android:textSize="24sp"
+                        android:textSize="14sp"
                         android:textStyle="bold" />
 
                 </android.support.v7.widget.CardView>

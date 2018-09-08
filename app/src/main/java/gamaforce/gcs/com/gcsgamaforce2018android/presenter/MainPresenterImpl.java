@@ -82,9 +82,11 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
             mainView.setDronePositionOnGoogleMaps(parseData(5, retrievedData), Double.parseDouble(removeLastChar(String.valueOf(parseData(6, retrievedData)))));
             mainView.showAirSpeed(parseData(7, retrievedData));
             mainView.showBattery(parseData(8, retrievedData));
-            int mode = Integer.parseInt(String.valueOf(parseData(9, retrievedData)));
+            int mode = (int) parseData(9, retrievedData);
+            Log.i(TAG, "MODE : " + mode + " | " + context.getResources().getStringArray(R.array.mode_list)[mode]);
             mainView.showMode(context.getResources().getStringArray(R.array.mode_list)[mode]);
-            int armStatus = Integer.parseInt(String.valueOf(parseData(11, retrievedData)));
+            int armStatus = (int) parseData(11, retrievedData);
+            Log.i(TAG, "ARM STATUS : " + armStatus + " | " + context.getResources().getStringArray(R.array.arm_status_list)[armStatus]);
             mainView.showArmStatus(context.getResources().getStringArray(R.array.arm_status_list)[armStatus]);
         } else{
             Log.e(TAG, "Invalid data : " + retrievedData);
