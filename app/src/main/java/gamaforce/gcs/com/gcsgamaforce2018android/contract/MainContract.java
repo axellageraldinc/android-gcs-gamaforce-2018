@@ -16,7 +16,7 @@ public interface MainContract {
         void showMode(String mode);
         void showArmStatus(String armStatus);
 
-        void setDronePositionOnGoogleMaps(double latitude, double longitude);
+        void setDronePositionOnGoogleMaps(double latitude, double longitude, double yaw);
 
         void showToastMessage(String message);
     }
