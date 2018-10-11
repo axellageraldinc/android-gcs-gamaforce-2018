@@ -60,6 +60,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private BitmapDescriptor uavMarker;
     private Polyline uavPathPolyline;
 
+    private String mode;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,12 +118,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void setSpinnerGcsCommandContent() {
-        // TODO : Validate the commands with hardware programmer and GCS PC programmer
         List<GcsCommand> gcsCommandList = new ArrayList<GcsCommand>(){{
-            add(new GcsCommand("1", "Manual"));
+            add(new GcsCommand("0", "Manual"));
             add(new GcsCommand("1", "Stabilize"));
-            add(new GcsCommand("1", "Alt Hold"));
-            add(new GcsCommand("1", "Head Lock"));
+            add(new GcsCommand("2", "Alt Hold"));
+            add(new GcsCommand("3", "Head Lock"));
         }};
         gcsCommandSpinnerAdapter = new GcsCommandSpinnerAdapter(this, android.R.layout.simple_spinner_item, gcsCommandList);
         spinnerCommand.setAdapter(gcsCommandSpinnerAdapter);
@@ -216,6 +217,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void showMode(final String mode) {
+        this.mode = mode;
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -275,7 +277,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (btnConnect.getText().toString().equals("CONNECT")) {
                     showToastMessage("You have to connect to UAV first!");
                 } else {
-                    mainPresenter.writeToUsb(selectedCommand.getCommandToSend());
+                    if (mode.equals("VTOL"))
+                        mainPresenter.writeToUsb(0, selectedCommand.getCommandToSend());
+                    else if (mode.equals("PLANE"))
+                        mainPresenter.writeToUsb(1, selectedCommand.getCommandToSend());
                     dialogSendCommandToUav.dismiss();
                 }
                 break;

@@ -15,7 +15,7 @@
         <item>256000</item>
     </string-array>
 
-    <string-array name="mode_list">
+    <string-array name="plane_mode_list">
         <item>VTOL</item>
         <item>PLANE</item>
     </string-array>
@@ -23,5 +23,10 @@
     <string-array name="arm_status_list">
         <item>DISARMED</item>
         <item>ARMED</item>
+    </string-array>
+
+    <string-array name="control_mode_list">
+        <item>MANUAL</item>
+        <item>AUTO</item>
     </string-array>
 </resources>

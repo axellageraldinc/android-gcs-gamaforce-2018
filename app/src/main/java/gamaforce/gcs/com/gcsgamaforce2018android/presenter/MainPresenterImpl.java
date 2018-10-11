@@ -4,7 +4,6 @@ import android.content.Context;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
@@ -70,9 +69,10 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
     }
 
     @Override
-    public void writeToUsb(String payload) {
+    public void writeToUsb(int mode, String command) {
         try {
-            usbSerialPort.write(payload.getBytes(), 3000);
+            String fullCommand = "@#" + mode + "#" + command + "#*";
+            usbSerialPort.write(fullCommand.getBytes(), 3000);
         } catch (IOException e) {
             Log.e(TAG, "Error write to usb : " + e.getMessage());
         }
@@ -82,6 +82,7 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
     public void onNewData(byte[] data) {
         String retrievedData = new String(data);
         if(isDataValid(retrievedData)) {
+            // @#alt#yaw#pitch#roll#lat#lng#air_speed#battery#mode(vtol atau plane)#gcs_command#mode(manual atau auto)#arming(0 atau 1)#*
             Log.d(TAG, "Valid data : " + retrievedData);
             mainView.showAltitude(parseData(1, retrievedData));
             mainView.showYaw(parseData(2, retrievedData));
@@ -91,10 +92,12 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
             mainView.setDronePositionOnGoogleMaps(parseData(5, retrievedData), Double.parseDouble(removeLastChar(String.valueOf(parseData(6, retrievedData)))));
             mainView.showAirSpeed(parseData(7, retrievedData));
             mainView.showBattery(parseData(8, retrievedData));
-            int mode = (int) parseData(9, retrievedData);
-            Log.d(TAG, "MODE : " + mode + " | " + context.getResources().getStringArray(R.array.mode_list)[mode]);
-            mainView.showMode(context.getResources().getStringArray(R.array.mode_list)[mode]);
-            int armStatus = (int) parseData(11, retrievedData);
+            int planeMode = (int) parseData(9, retrievedData);
+            Log.d(TAG, "MODE : " + planeMode + " | " + context.getResources().getStringArray(R.array.plane_mode_list)[planeMode]);
+            mainView.showMode(context.getResources().getStringArray(R.array.plane_mode_list)[planeMode]);
+            int controlMode = (int) parseData(11, retrievedData);
+            Log.d(TAG, "CONTROL MODE : " + controlMode + " | " + context.getResources().getStringArray(R.array.control_mode_list)[controlMode]);
+            int armStatus = (int) parseData(12, retrievedData);
             Log.d(TAG, "ARM STATUS : " + armStatus + " | " + context.getResources().getStringArray(R.array.arm_status_list)[armStatus]);
             mainView.showArmStatus(context.getResources().getStringArray(R.array.arm_status_list)[armStatus]);
         } else{
