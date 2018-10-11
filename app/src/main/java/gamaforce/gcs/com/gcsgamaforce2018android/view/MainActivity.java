@@ -59,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Marker marker;
     private BitmapDescriptor uavMarker;
     private Polyline uavPathPolyline;
+    private float oldYaw;
 
     private String mode;
 
@@ -84,7 +85,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         txtBattery = findViewById(R.id.txtBattery);
         txtMode = findViewById(R.id.txtMode);
         txtArmStatus = findViewById(R.id.txtArming);
-
         btnShowDialogConnect = findViewById(R.id.btnShowDialogConnect);
         btnShowDialogConnect.setOnClickListener(this);
         btnShowDialogSendCommand = findViewById(R.id.btnShowSendCommandDialog);
@@ -149,8 +149,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Log.d(TAG, "Pitch: " + Float.parseFloat(String.valueOf(pitch)) + "\nRoll: " + Float.parseFloat(String.valueOf(roll)));
-                attitudeIndicator.setAttitude(Float.parseFloat(String.valueOf(pitch)), Float.parseFloat(String.valueOf(roll)));
+                attitudeIndicator.setAttitude(
+                        Float.parseFloat(String.valueOf(pitch)),
+                        Float.parseFloat(String.valueOf(roll))
+                );
+
             }
         });
     }
@@ -237,11 +240,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
-    public void setDronePositionOnGoogleMaps(final double latitude, final double longitude) {
+    public void setDronePositionOnGoogleMaps(final double latitude, final double longitude,
+                                             final double yaw) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                moveMarker(new LatLng(latitude, longitude));
+                moveMarker(new LatLng(latitude, longitude), yaw);
                 drawPolyline(new LatLng(latitude, longitude));
             }
         });
@@ -317,7 +321,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private void moveMarker(LatLng latLng) {
+    private void moveMarker(LatLng latLng, double yaw) {
+        float rotationDegree = (float) yaw - oldYaw;
+        oldYaw = (float) yaw;
         if(this.uavMarker == null){
             uavMarker = BitmapDescriptorFactory.fromResource(R.mipmap.ic_plane);
         }
@@ -326,6 +332,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .position(latLng)
                 .flat(true)
                 .anchor(0.5f, 0.5f)
+                .rotation(rotationDegree)
                 .icon(this.uavMarker)
                 .title("Lokasi Pesawat"));
         googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
