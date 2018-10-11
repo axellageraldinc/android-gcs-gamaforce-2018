@@ -52,7 +52,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Spinner spinnerBaudRate;
     private Button btnConnect;
     private FloatingActionButton btnShowDialogConnect;
-    // TODO : AttitudeIndicator still not working
     private AttitudeIndicator attitudeIndicator;
     private TextView txtAltitude, txtYaw, txtPitch, txtRoll, txtAirSpeed, txtBattery, txtMode, txtArmStatus;
 
