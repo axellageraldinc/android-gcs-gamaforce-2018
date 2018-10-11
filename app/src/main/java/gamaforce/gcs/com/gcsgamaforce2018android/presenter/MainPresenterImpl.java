@@ -65,7 +65,16 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
             mainView.showToastMessage("Disconnected from USB...");
         } catch (IOException e) {
             Log.e(TAG, "Error disconnecting usb : " + e.getMessage());
-            mainView.showToastMessage("Error disconnecting usb : " + e.getMessage());
+//            mainView.showToastMessage("Error disconnecting usb : " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void writeToUsb(String payload) {
+        try {
+            usbSerialPort.write(payload.getBytes(), 3000);
+        } catch (IOException e) {
+            Log.e(TAG, "Error write to usb : " + e.getMessage());
         }
     }
 
@@ -83,10 +92,10 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
             mainView.showAirSpeed(parseData(7, retrievedData));
             mainView.showBattery(parseData(8, retrievedData));
             int mode = (int) parseData(9, retrievedData);
-            Log.i(TAG, "MODE : " + mode + " | " + context.getResources().getStringArray(R.array.mode_list)[mode]);
+            Log.d(TAG, "MODE : " + mode + " | " + context.getResources().getStringArray(R.array.mode_list)[mode]);
             mainView.showMode(context.getResources().getStringArray(R.array.mode_list)[mode]);
             int armStatus = (int) parseData(11, retrievedData);
-            Log.i(TAG, "ARM STATUS : " + armStatus + " | " + context.getResources().getStringArray(R.array.arm_status_list)[armStatus]);
+            Log.d(TAG, "ARM STATUS : " + armStatus + " | " + context.getResources().getStringArray(R.array.arm_status_list)[armStatus]);
             mainView.showArmStatus(context.getResources().getStringArray(R.array.arm_status_list)[armStatus]);
         } else{
             Log.e(TAG, "Invalid data : " + retrievedData);

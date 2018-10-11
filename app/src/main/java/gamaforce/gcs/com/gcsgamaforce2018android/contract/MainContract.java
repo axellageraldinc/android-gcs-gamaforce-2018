@@ -23,5 +23,6 @@ public interface MainContract {
     interface Presenter {
         void connectToUsb(String baudRate);
         void disconnectFromUsb();
+        void writeToUsb(String payload);
     }
 }
