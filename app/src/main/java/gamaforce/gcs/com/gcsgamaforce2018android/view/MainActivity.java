@@ -8,13 +8,14 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,7 +39,10 @@ import gamaforce.gcs.com.gcsgamaforce2018android.contract.MainContract;
 import gamaforce.gcs.com.gcsgamaforce2018android.model.GcsCommand;
 import gamaforce.gcs.com.gcsgamaforce2018android.presenter.MainPresenterImpl;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener, MainContract.View {
+public class MainActivity extends AppCompatActivity implements
+        OnMapReadyCallback,
+        View.OnClickListener,
+        MainContract.View, Switch.OnCheckedChangeListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final Integer GMAPS_REQUEST_PERMISSION = 1;
@@ -54,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FloatingActionButton btnShowDialogConnect, btnShowDialogSendCommand;
     private AttitudeIndicator attitudeIndicator;
     private TextView txtAltitude, txtYaw, txtPitch, txtRoll, txtAirSpeed, txtBattery, txtMode, txtArmStatus;
+    private Switch switchArm;
 
     private GoogleMap googleMap;
     private Marker marker;
@@ -61,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Polyline uavPathPolyline;
     private float oldYaw;
 
-    private String mode;
+    private int planeMode=0, controlMode=0, armStatus=0, gcsCommand=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,6 +105,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         btnConnect = dialogConnectToUav.findViewById(R.id.button_connect);
         btnConnect.setOnClickListener(this);
 
+        switchArm = findViewById(R.id.switchArm);
+        switchArm.setChecked(false);
+        switchArm.setOnCheckedChangeListener(this);
+
         dialogSendCommandToUav = new Dialog(MainActivity.this);
         dialogSendCommandToUav.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialogSendCommandToUav.setContentView(R.layout.dialog_send_command);
@@ -119,10 +128,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void setSpinnerGcsCommandContent() {
         List<GcsCommand> gcsCommandList = new ArrayList<GcsCommand>(){{
-            add(new GcsCommand("0", "Manual"));
-            add(new GcsCommand("1", "Stabilize"));
-            add(new GcsCommand("2", "Alt Hold"));
-            add(new GcsCommand("3", "Head Lock"));
+            add(new GcsCommand(0, "Manual"));
+            add(new GcsCommand(1, "Stabilize"));
+            add(new GcsCommand(2, "Alt Hold"));
+            add(new GcsCommand(3, "Head Lock"));
         }};
         gcsCommandSpinnerAdapter = new GcsCommandSpinnerAdapter(this, android.R.layout.simple_spinner_item, gcsCommandList);
         spinnerCommand.setAdapter(gcsCommandSpinnerAdapter);
@@ -219,8 +228,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
-    public void showMode(final String mode) {
-        this.mode = mode;
+    public void showPlaneMode(final String mode) {
+        if (mode.equals(getApplicationContext().getResources().getStringArray(R.array.plane_mode_list)[0]))
+            this.planeMode = 0;
+        else
+            this.planeMode = 1;
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -230,11 +242,28 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
+    public void showGcsCommand(int gcsCommand) {
+        this.gcsCommand = gcsCommand;
+    }
+
+    @Override
+    public void showControlMode(int controlMode) {
+        this.controlMode = controlMode;
+    }
+
+    @Override
     public void showArmStatus(final String armStatus) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 txtArmStatus.setText(armStatus);
+                switchArm.setText(armStatus);
+                if (armStatus.equals(getApplicationContext().getResources().getStringArray(R.array.arm_status_list)[0])){
+                    switchArm.setChecked(false);
+                }
+                else {
+                    switchArm.setChecked(true);
+                }
             }
         });
     }
@@ -281,10 +310,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (btnConnect.getText().toString().equals("CONNECT")) {
                     showToastMessage("You have to connect to UAV first!");
                 } else {
-                    if (mode.equals("VTOL"))
-                        mainPresenter.writeToUsb(0, selectedCommand.getCommandToSend());
-                    else if (mode.equals("PLANE"))
-                        mainPresenter.writeToUsb(1, selectedCommand.getCommandToSend());
+                    mainPresenter.writeToUsb(planeMode, selectedCommand.getCommandToSend());
                     dialogSendCommandToUav.dismiss();
                 }
                 break;
@@ -363,5 +389,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        if (btnConnect.getText().equals("CONNECT")) {
+            showToastMessage("You have to connect to UAV first!");
+            switchArm.setChecked(false);
+        } else {
+            if (isChecked) {
+                mainPresenter.setArmStatus(1);
+            } else {
+                mainPresenter.setArmStatus(0);
+            }
+        }
     }
 }

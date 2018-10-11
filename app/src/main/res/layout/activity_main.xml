@@ -505,4 +505,14 @@
         app:layout_constraintTop_toTopOf="@+id/btnShowDialogConnect"
         app:srcCompat="@drawable/ic_send" />
 
+    <Switch
+        android:id="@+id/switchArm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="DISARMED"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="@+id/btnShowDialogConnect"
+        app:layout_constraintTop_toBottomOf="@+id/btnShowSendCommandDialog" />
+
 </android.support.constraint.ConstraintLayout>

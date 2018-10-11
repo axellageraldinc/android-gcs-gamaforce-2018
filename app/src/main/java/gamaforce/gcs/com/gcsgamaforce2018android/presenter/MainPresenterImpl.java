@@ -65,14 +65,23 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
             mainView.showToastMessage("Disconnected from USB...");
         } catch (IOException e) {
             Log.e(TAG, "Error disconnecting usb : " + e.getMessage());
-//            mainView.showToastMessage("Error disconnecting usb : " + e.getMessage());
         }
     }
 
     @Override
-    public void writeToUsb(int mode, String command) {
+    public void writeToUsb(int planeMode, int command) {
         try {
-            String fullCommand = "@#" + mode + "#" + command + "#*";
+            String fullCommand = "@#" + planeMode + "#" + command + "#*";
+            usbSerialPort.write(fullCommand.getBytes(), 3000);
+        } catch (IOException e) {
+            Log.e(TAG, "Error write to usb : " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void setArmStatus(int armStatus) {
+        try {
+            String fullCommand = "a#" + armStatus + "#*";
             usbSerialPort.write(fullCommand.getBytes(), 3000);
         } catch (IOException e) {
             Log.e(TAG, "Error write to usb : " + e.getMessage());
@@ -83,7 +92,7 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
     public void onNewData(byte[] data) {
         String retrievedData = new String(data);
         if(isDataValid(retrievedData)) {
-            // @#alt#yaw#pitch#roll#lat#lng#air_speed#battery#mode(vtol atau plane)#gcs_command#mode(manual atau auto)#arming(0 atau 1)#*
+            // @#alt#yaw#pitch#roll#lat#lng#air_speed#battery#plane_mode(vtol atau plane)#gcs_command#control_mode(manual atau auto)#arming(0 atau 1)#*
             Log.d(TAG, "Valid data : " + retrievedData);
             mainView.showAltitude(parseData(1, retrievedData));
             mainView.showYaw(parseData(2, retrievedData));
@@ -97,14 +106,25 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
             );
             mainView.showAirSpeed(parseData(7, retrievedData));
             mainView.showBattery(parseData(8, retrievedData));
+
             int planeMode = (int) parseData(9, retrievedData);
-            Log.d(TAG, "MODE : " + planeMode + " | " + context.getResources().getStringArray(R.array.plane_mode_list)[planeMode]);
-            mainView.showMode(context.getResources().getStringArray(R.array.plane_mode_list)[planeMode]);
+            if (planeMode == 0)
+                mainView.showPlaneMode("VTOL");
+            else
+                mainView.showPlaneMode("PLANE");
+
+            int gcsCommand = (int) parseData(10, retrievedData);
+            mainView.showGcsCommand(gcsCommand);
+
             int controlMode = (int) parseData(11, retrievedData);
-            Log.d(TAG, "CONTROL MODE : " + controlMode + " | " + context.getResources().getStringArray(R.array.control_mode_list)[controlMode]);
+            mainView.showControlMode(controlMode);
+
             int armStatus = (int) parseData(12, retrievedData);
-            Log.d(TAG, "ARM STATUS : " + armStatus + " | " + context.getResources().getStringArray(R.array.arm_status_list)[armStatus]);
-            mainView.showArmStatus(context.getResources().getStringArray(R.array.arm_status_list)[armStatus]);
+            Log.i(TAG, String.valueOf(armStatus));
+            if (armStatus == 0)
+                mainView.showArmStatus("DISARMED");
+            else
+                mainView.showArmStatus("ARMED");
         } else{
             Log.e(TAG, "Invalid data : " + retrievedData);
         }
@@ -136,7 +156,7 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
     private boolean isDataValid(String data) {
         String validData = data.split("\\*")[0];
         String[] dataSplit = validData.split("#");
-        return dataSplit.length == 12 &&
+        return dataSplit.length == 13 &&
                 !dataSplit[0].contains("\\*");
     }
 
