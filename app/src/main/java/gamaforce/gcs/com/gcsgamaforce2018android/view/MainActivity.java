@@ -3,8 +3,6 @@ package gamaforce.gcs.com.gcsgamaforce2018android.view;
 import android.Manifest;
 import android.app.Dialog;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.location.Location;
 import android.os.Build;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
@@ -37,6 +35,7 @@ import java.util.List;
 
 import gamaforce.gcs.com.gcsgamaforce2018android.R;
 import gamaforce.gcs.com.gcsgamaforce2018android.contract.MainContract;
+import gamaforce.gcs.com.gcsgamaforce2018android.model.GcsCommand;
 import gamaforce.gcs.com.gcsgamaforce2018android.presenter.MainPresenterImpl;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener, MainContract.View {
@@ -48,10 +47,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private MainContract.Presenter mainPresenter;
 
-    private Dialog dialog;
-    private Spinner spinnerBaudRate;
-    private Button btnConnect;
-    private FloatingActionButton btnShowDialogConnect;
+    private Dialog dialogConnectToUav, dialogSendCommandToUav;
+    private Spinner spinnerBaudRate, spinnerCommand;
+    private GcsCommandSpinnerAdapter gcsCommandSpinnerAdapter;
+    private Button btnConnect, btnSendCommand;
+    private FloatingActionButton btnShowDialogConnect, btnShowDialogSendCommand;
     private AttitudeIndicator attitudeIndicator;
     private TextView txtAltitude, txtYaw, txtPitch, txtRoll, txtAirSpeed, txtBattery, txtMode, txtArmStatus;
 
@@ -85,17 +85,27 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         btnShowDialogConnect = findViewById(R.id.btnShowDialogConnect);
         btnShowDialogConnect.setOnClickListener(this);
+        btnShowDialogSendCommand = findViewById(R.id.btnShowSendCommandDialog);
+        btnShowDialogSendCommand.setOnClickListener(this);
 
-        dialog = new Dialog(MainActivity.this);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(R.layout.dialog_connect);
+        dialogConnectToUav = new Dialog(MainActivity.this);
+        dialogConnectToUav.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogConnectToUav.setContentView(R.layout.dialog_connect);
         int width = (int)(getResources().getDisplayMetrics().widthPixels*0.5);
-        int height = (int)(getResources().getDisplayMetrics().heightPixels*0.5);
-        dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
-        spinnerBaudRate = dialog.findViewById(R.id.spinnerBaudRate);
+        dialogConnectToUav.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+        spinnerBaudRate = dialogConnectToUav.findViewById(R.id.spinnerCommand);
         setSpinnerBaudRateContent();
-        btnConnect = dialog.findViewById(R.id.button_connect);
+        btnConnect = dialogConnectToUav.findViewById(R.id.button_connect);
         btnConnect.setOnClickListener(this);
+
+        dialogSendCommandToUav = new Dialog(MainActivity.this);
+        dialogSendCommandToUav.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogSendCommandToUav.setContentView(R.layout.dialog_send_command);
+        dialogSendCommandToUav.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+        spinnerCommand = dialogSendCommandToUav.findViewById(R.id.spinnerCommand);
+        setSpinnerGcsCommandContent();
+        btnSendCommand = dialogSendCommandToUav.findViewById(R.id.btnSendCommand);
+        btnSendCommand.setOnClickListener(this);
     }
 
     private void setSpinnerBaudRateContent() {
@@ -105,9 +115,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         spinnerBaudRate.setAdapter(spinnerAdapter);
     }
 
+    private void setSpinnerGcsCommandContent() {
+        // TODO : Validate the commands with hardware programmer and GCS PC programmer
+        List<GcsCommand> gcsCommandList = new ArrayList<GcsCommand>(){{
+            add(new GcsCommand("1", "Manual"));
+            add(new GcsCommand("1", "Stabilize"));
+            add(new GcsCommand("1", "Alt Hold"));
+            add(new GcsCommand("1", "Head Lock"));
+        }};
+        gcsCommandSpinnerAdapter = new GcsCommandSpinnerAdapter(this, android.R.layout.simple_spinner_item, gcsCommandList);
+        spinnerCommand.setAdapter(gcsCommandSpinnerAdapter);
+    }
+
     @Override
     public void dismissDialogConnect() {
-        dialog.dismiss();
+        dialogConnectToUav.dismiss();
         btnConnect.setText("DISCONNECT");
     }
 
@@ -243,7 +265,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     mainPresenter.disconnectFromUsb();
                 break;
             case R.id.btnShowDialogConnect:
-                dialog.show();
+                dialogConnectToUav.show();
+                break;
+            case R.id.btnShowSendCommandDialog:
+                dialogSendCommandToUav.show();
+                break;
+            case R.id.btnSendCommand:
+                GcsCommand selectedCommand = (GcsCommand) spinnerCommand.getSelectedItem();
+                if (btnConnect.getText().toString().equals("CONNECT")) {
+                    showToastMessage("You have to connect to UAV first!");
+                } else {
+                    mainPresenter.writeToUsb(selectedCommand.getCommandToSend());
+                    dialogSendCommandToUav.dismiss();
+                }
                 break;
         }
     }
