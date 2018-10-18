@@ -1,9 +1,9 @@
 package gamaforce.gcs.com.gcsgamaforce2018android.view;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 
 import gamaforce.gcs.com.gcsgamaforce2018android.R;
 

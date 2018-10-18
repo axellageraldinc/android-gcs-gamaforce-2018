@@ -15,23 +15,19 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import gamaforce.gcs.com.gcsgamaforce2018android.R;
 import gamaforce.gcs.com.gcsgamaforce2018android.contract.MainContract;
 
 public class MainPresenterImpl implements MainContract.Presenter, SerialInputOutputManager.Listener {
 
-    //TODO : Differences between rotation degree
     private static final String TAG = MainPresenterImpl.class.getSimpleName();
 
-    private Context context;
     private UsbManager usbManager;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
-    private static UsbSerialPort usbSerialPort = null;
+    private UsbSerialPort usbSerialPort = null;
 
     private MainContract.View mainView;
 
     public MainPresenterImpl(Context context, MainContract.View mainView) {
-        this.context = context;
         this.mainView = mainView;
         usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
     }
@@ -45,6 +41,7 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
             try {
                 usbSerialPort.open(connection);
                 usbSerialPort.setParameters(Integer.parseInt(baudRate), 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
+                usbSerialPort.setDTR(true);
                 mainView.dismissDialogConnect();
                 mainView.changeBtnConnectTextToDisconnect();
                 mainView.showToastMessage("Successfully connected to USB...");
@@ -68,6 +65,8 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
         }
     }
 
+    // CONTROL MODE : u#control_mode* --> 0 = Manual, 1 = Auto
+
     @Override
     public void writeToUsb(int planeMode, int command) {
         try {
@@ -81,7 +80,7 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
     @Override
     public void setArmStatus(int armStatus) {
         try {
-            String fullCommand = "a#" + armStatus + "#*";
+            String fullCommand = "a#" + armStatus + "*";
             usbSerialPort.write(fullCommand.getBytes(), 3000);
         } catch (IOException e) {
             Log.e(TAG, "Error write to usb : " + e.getMessage());
@@ -91,7 +90,7 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
     @Override
     public void onNewData(byte[] data) {
         String retrievedData = new String(data);
-        if(isDataValid(retrievedData)) {
+        if (isDataValid(retrievedData)) {
             // @#alt#yaw#pitch#roll#lat#lng#air_speed#battery#plane_mode(vtol atau plane)#gcs_command#control_mode(manual atau auto)#arming(0 atau 1)#*
             Log.d(TAG, "Valid data : " + retrievedData);
             mainView.showAltitude(parseData(1, retrievedData));
@@ -101,7 +100,7 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
             mainView.setAttitudeIndicator(parseData(3, retrievedData), parseData(4, retrievedData));
             mainView.setDronePositionOnGoogleMaps(
                     parseData(5, retrievedData),
-                    Double.parseDouble(removeLastChar(String.valueOf(parseData(6, retrievedData)))),
+                    parseData(6, retrievedData),
                     parseData(2, retrievedData)
             );
             mainView.showAirSpeed(parseData(7, retrievedData));
@@ -120,12 +119,11 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
             mainView.showControlMode(controlMode);
 
             int armStatus = (int) parseData(12, retrievedData);
-            Log.i(TAG, String.valueOf(armStatus));
             if (armStatus == 0)
                 mainView.showArmStatus("DISARMED");
             else
                 mainView.showArmStatus("ARMED");
-        } else{
+        } else {
             Log.e(TAG, "Invalid data : " + retrievedData);
         }
     }
@@ -136,14 +134,14 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
         mainView.showToastMessage("Error listening to USB : " + e.getMessage());
     }
 
-    private void beginRetrievingData(){
+    private void beginRetrievingData() {
         //TODO : Consider migrating this serialInputOutputManager initiation using Dagger2
         SerialInputOutputManager serialInputOutputManager =
                 new SerialInputOutputManager(usbSerialPort, this);
         executorService.submit(serialInputOutputManager);
     }
 
-    private UsbSerialDriver getFirstAvailableUsb(){
+    private UsbSerialDriver getFirstAvailableUsb() {
         // Find all available drivers from attached devices.
         List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager);
         if (availableDrivers.isEmpty()) {
@@ -160,17 +158,13 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
                 !dataSplit[0].contains("\\*");
     }
 
-    private double parseData(int index, String data){
+    private double parseData(int index, String data) {
         try {
             String[] dataSplit = data.split("#");
             return Double.parseDouble(dataSplit[index]);
-        } catch (Exception ex){
+        } catch (Exception ex) {
             return 0;
         }
-    }
-
-    private String removeLastChar(String str) {
-        return str.substring(0, str.length() - 1);
     }
 
 }

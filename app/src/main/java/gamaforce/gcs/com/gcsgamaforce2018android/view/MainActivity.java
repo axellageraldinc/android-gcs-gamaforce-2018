@@ -4,10 +4,11 @@ import android.Manifest;
 import android.app.Dialog;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -51,11 +52,11 @@ public class MainActivity extends AppCompatActivity implements
 
     private MainContract.Presenter mainPresenter;
 
-    private Dialog dialogConnectToUav, dialogSendCommandToUav;
-    private Spinner spinnerBaudRate, spinnerCommand;
-    private GcsCommandSpinnerAdapter gcsCommandSpinnerAdapter;
-    private Button btnConnect, btnSendCommand;
-    private FloatingActionButton btnShowDialogConnect, btnShowDialogSendCommand;
+    private Dialog dialogConnectToUav;
+    private Dialog dialogSendCommandToUav;
+    private Spinner spinnerBaudRate;
+    private Spinner spinnerCommand;
+    private Button btnConnect;
     private AttitudeIndicator attitudeIndicator;
     private TextView txtAltitude, txtYaw, txtPitch, txtRoll, txtAirSpeed, txtBattery, txtMode, txtArmStatus;
     private Switch switchArm;
@@ -67,6 +68,9 @@ public class MainActivity extends AppCompatActivity implements
     private float oldYaw;
 
     private int planeMode=0, controlMode=0, armStatus=0, gcsCommand=0;
+    private boolean isInitialArmStatusHasBeenSet = false;
+
+    private Handler mapHandler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,9 +94,9 @@ public class MainActivity extends AppCompatActivity implements
         txtBattery = findViewById(R.id.txtBattery);
         txtMode = findViewById(R.id.txtMode);
         txtArmStatus = findViewById(R.id.txtArming);
-        btnShowDialogConnect = findViewById(R.id.btnShowDialogConnect);
+        FloatingActionButton btnShowDialogConnect = findViewById(R.id.btnShowDialogConnect);
         btnShowDialogConnect.setOnClickListener(this);
-        btnShowDialogSendCommand = findViewById(R.id.btnShowSendCommandDialog);
+        FloatingActionButton btnShowDialogSendCommand = findViewById(R.id.btnShowSendCommandDialog);
         btnShowDialogSendCommand.setOnClickListener(this);
 
         dialogConnectToUav = new Dialog(MainActivity.this);
@@ -115,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements
         dialogSendCommandToUav.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
         spinnerCommand = dialogSendCommandToUav.findViewById(R.id.spinnerCommand);
         setSpinnerGcsCommandContent();
-        btnSendCommand = dialogSendCommandToUav.findViewById(R.id.btnSendCommand);
+        Button btnSendCommand = dialogSendCommandToUav.findViewById(R.id.btnSendCommand);
         btnSendCommand.setOnClickListener(this);
     }
 
@@ -133,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements
             add(new GcsCommand(2, "Alt Hold"));
             add(new GcsCommand(3, "Head Lock"));
         }};
-        gcsCommandSpinnerAdapter = new GcsCommandSpinnerAdapter(this, android.R.layout.simple_spinner_item, gcsCommandList);
+        GcsCommandSpinnerAdapter gcsCommandSpinnerAdapter = new GcsCommandSpinnerAdapter(this, android.R.layout.simple_spinner_item, gcsCommandList);
         spinnerCommand.setAdapter(gcsCommandSpinnerAdapter);
     }
 
@@ -258,11 +262,14 @@ public class MainActivity extends AppCompatActivity implements
             public void run() {
                 txtArmStatus.setText(armStatus);
                 switchArm.setText(armStatus);
-                if (armStatus.equals(getApplicationContext().getResources().getStringArray(R.array.arm_status_list)[0])){
-                    switchArm.setChecked(false);
-                }
-                else {
-                    switchArm.setChecked(true);
+                if (!isInitialArmStatusHasBeenSet) {
+                    if (armStatus.equals(getApplicationContext().getResources().getStringArray(R.array.arm_status_list)[0])){
+                        switchArm.setChecked(false);
+                    }
+                    else {
+                        switchArm.setChecked(true);
+                    }
+                    isInitialArmStatusHasBeenSet = true;
                 }
             }
         });
@@ -384,11 +391,6 @@ public class MainActivity extends AppCompatActivity implements
 
             uavPathPolyline.setPoints(points);
         }
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
     }
 
     @Override
