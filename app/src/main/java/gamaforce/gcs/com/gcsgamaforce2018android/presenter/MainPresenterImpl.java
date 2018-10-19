@@ -98,11 +98,11 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
             mainView.showPitch(parseData(3, retrievedData));
             mainView.showRoll(parseData(4, retrievedData));
             mainView.setAttitudeIndicator(parseData(3, retrievedData), parseData(4, retrievedData));
-            mainView.setDronePositionOnGoogleMaps(
-                    parseData(5, retrievedData),
-                    parseData(6, retrievedData),
-                    parseData(2, retrievedData)
-            );
+//            mainView.setDronePositionOnGoogleMaps(
+//                    parseData(5, retrievedData),
+//                    parseData(6, retrievedData),
+//                    parseData(2, retrievedData)
+//            );
             mainView.showAirSpeed(parseData(7, retrievedData));
             mainView.showBattery(parseData(8, retrievedData));
 
