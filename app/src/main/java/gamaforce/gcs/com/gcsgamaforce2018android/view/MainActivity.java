@@ -5,7 +5,6 @@ import android.app.Dialog;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -37,12 +36,12 @@ import java.util.List;
 
 import gamaforce.gcs.com.gcsgamaforce2018android.R;
 import gamaforce.gcs.com.gcsgamaforce2018android.contract.MainContract;
-import gamaforce.gcs.com.gcsgamaforce2018android.model.GcsCommand;
 import gamaforce.gcs.com.gcsgamaforce2018android.presenter.MainPresenterImpl;
+import io.reactivex.disposables.Disposable;
 
 public class MainActivity extends AppCompatActivity implements
         OnMapReadyCallback,
-        View.OnClickListener,
+        Button.OnClickListener,
         MainContract.View, Switch.OnCheckedChangeListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -60,6 +59,8 @@ public class MainActivity extends AppCompatActivity implements
     private AttitudeIndicator attitudeIndicator;
     private TextView txtAltitude, txtYaw, txtPitch, txtRoll, txtAirSpeed, txtBattery, txtMode, txtArmStatus;
     private Switch switchArm;
+    private Switch switchControlMode;
+    private Button btnTakeoffLanding;
 
     private GoogleMap googleMap;
     private Marker marker;
@@ -67,10 +68,11 @@ public class MainActivity extends AppCompatActivity implements
     private Polyline uavPathPolyline;
     private float oldYaw;
 
-    private int planeMode=0, controlMode=0, armStatus=0, gcsCommand=0;
-    private boolean isInitialArmStatusHasBeenSet = false;
+    private Disposable disposable = null;
 
-    private Handler mapHandler = new Handler();
+    private int planeMode=0, controlMode=0, armStatus=0;
+    private boolean isInitialArmStatusHasBeenSet = false;
+    private boolean isInitialControlModeHasBeenSet = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,8 +98,8 @@ public class MainActivity extends AppCompatActivity implements
         txtArmStatus = findViewById(R.id.txtArming);
         FloatingActionButton btnShowDialogConnect = findViewById(R.id.btnShowDialogConnect);
         btnShowDialogConnect.setOnClickListener(this);
-        FloatingActionButton btnShowDialogSendCommand = findViewById(R.id.btnShowSendCommandDialog);
-        btnShowDialogSendCommand.setOnClickListener(this);
+        FloatingActionButton btnRefreshUsb = findViewById(R.id.btnRefreshUsb);
+        btnRefreshUsb.setOnClickListener(this);
 
         dialogConnectToUav = new Dialog(MainActivity.this);
         dialogConnectToUav.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -111,16 +113,24 @@ public class MainActivity extends AppCompatActivity implements
 
         switchArm = findViewById(R.id.switchArm);
         switchArm.setChecked(false);
-        switchArm.setOnCheckedChangeListener(this);
+        switchArm.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 
-        dialogSendCommandToUav = new Dialog(MainActivity.this);
-        dialogSendCommandToUav.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialogSendCommandToUav.setContentView(R.layout.dialog_send_command);
-        dialogSendCommandToUav.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
-        spinnerCommand = dialogSendCommandToUav.findViewById(R.id.spinnerCommand);
-        setSpinnerGcsCommandContent();
-        Button btnSendCommand = dialogSendCommandToUav.findViewById(R.id.btnSendCommand);
-        btnSendCommand.setOnClickListener(this);
+            }
+        });
+
+        switchControlMode = findViewById(R.id.switchControlMode);
+        switchControlMode.setChecked(false);
+        switchControlMode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+
+            }
+        });
+
+        btnTakeoffLanding = findViewById(R.id.btnTakeoffLanding);
+        btnTakeoffLanding.setOnClickListener(this);
     }
 
     private void setSpinnerBaudRateContent() {
@@ -130,15 +140,9 @@ public class MainActivity extends AppCompatActivity implements
         spinnerBaudRate.setAdapter(spinnerAdapter);
     }
 
-    private void setSpinnerGcsCommandContent() {
-        List<GcsCommand> gcsCommandList = new ArrayList<GcsCommand>(){{
-            add(new GcsCommand(0, "Manual"));
-            add(new GcsCommand(1, "Stabilize"));
-            add(new GcsCommand(2, "Alt Hold"));
-            add(new GcsCommand(3, "Head Lock"));
-        }};
-        GcsCommandSpinnerAdapter gcsCommandSpinnerAdapter = new GcsCommandSpinnerAdapter(this, android.R.layout.simple_spinner_item, gcsCommandList);
-        spinnerCommand.setAdapter(gcsCommandSpinnerAdapter);
+    @Override
+    public void enableButtonConnect(boolean isEnabled) {
+        btnConnect.setEnabled(isEnabled);
     }
 
     @Override
@@ -226,7 +230,7 @@ public class MainActivity extends AppCompatActivity implements
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                txtBattery.setText(String.valueOf(battery) + "%");
+                txtBattery.setText(String.valueOf(battery) + "V");
             }
         });
     }
@@ -246,13 +250,28 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void showGcsCommand(int gcsCommand) {
-        this.gcsCommand = gcsCommand;
-    }
-
-    @Override
-    public void showControlMode(int controlMode) {
-        this.controlMode = controlMode;
+    public void showControlMode(final int controlMode) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                String controlModeText;
+                if (controlMode == 0) {
+                    controlModeText = "MANUAL";
+                } else {
+                    controlModeText = "AUTO";
+                }
+                switchControlMode.setText(controlModeText);
+                if (!isInitialControlModeHasBeenSet) {
+                    if (controlMode == 0){
+                        switchArm.setChecked(false);
+                    }
+                    else {
+                        switchArm.setChecked(true);
+                    }
+                    isInitialControlModeHasBeenSet = true;
+                }
+            }
+        });
     }
 
     @Override
@@ -273,6 +292,15 @@ public class MainActivity extends AppCompatActivity implements
                 }
             }
         });
+    }
+
+    @Override
+    public void setTakeOffLanding(boolean isTakeOff) {
+        if (isTakeOff) {
+            btnTakeoffLanding.setText("TAKE OFF");
+        } else {
+            btnTakeoffLanding.setText("LANDING");
+        }
     }
 
     @Override
@@ -298,33 +326,6 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onClick(View v) {
-        switch (v.getId()){
-            case R.id.button_connect:
-                if(btnConnect.getText().toString().equals("CONNECT"))
-                    mainPresenter.connectToUsb(spinnerBaudRate.getSelectedItem().toString());
-                else
-                    mainPresenter.disconnectFromUsb();
-                break;
-            case R.id.btnShowDialogConnect:
-                dialogConnectToUav.show();
-                break;
-            case R.id.btnShowSendCommandDialog:
-                dialogSendCommandToUav.show();
-                break;
-            case R.id.btnSendCommand:
-                GcsCommand selectedCommand = (GcsCommand) spinnerCommand.getSelectedItem();
-                if (btnConnect.getText().toString().equals("CONNECT")) {
-                    showToastMessage("You have to connect to UAV first!");
-                } else {
-                    mainPresenter.writeToUsb(planeMode, selectedCommand.getCommandToSend());
-                    dialogSendCommandToUav.dismiss();
-                }
-                break;
-        }
-    }
-
-    @Override
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
         createMarker();
@@ -333,7 +334,7 @@ public class MainActivity extends AppCompatActivity implements
                 requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, GMAPS_REQUEST_PERMISSION);
             }
         } else {
-            this.googleMap.setMyLocationEnabled(true);
+            this.googleMap.setMyLocationEnabled(false);
         }
     }
 
@@ -395,15 +396,71 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        if (btnConnect.getText().equals("CONNECT")) {
-            showToastMessage("You have to connect to UAV first!");
-            switchArm.setChecked(false);
-        } else {
-            if (isChecked) {
-                mainPresenter.setArmStatus(1);
-            } else {
-                mainPresenter.setArmStatus(0);
-            }
+//        switch (buttonView.getId()) {
+//            case R.id.switchArm:
+//                if (btnConnect.getText().equals("CONNECT")) {
+//                    showToastMessage("You have to connect to UAV first!");
+//                    switchArm.setChecked(false);
+//                } else {
+//                    if (isChecked) {
+//                        mainPresenter.setArmStatus(1);
+//                    } else {
+//                        mainPresenter.setArmStatus(0);
+//                    }
+//                }
+//                break;
+//            case R.id.switchControlMode:
+//                if (btnConnect.getText().equals("CONNECT")) {
+//                    showToastMessage("You have to connect to UAV first!");
+//                    switchControlMode.setChecked(false);
+//                } else {
+//                    if (isChecked) {
+//                        mainPresenter.setControlMode(1);
+//                    } else {
+//                        mainPresenter.setControlMode(0);
+//                    }
+//                }
+//                break;
+//        }
+    }
+
+    @Override
+    public void setDisposable(Disposable disposable) {
+        this.disposable = disposable;
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (disposable != null) {
+            disposable.dispose();
+        }
+        super.onDestroy();
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.button_connect:
+                if(btnConnect.getText().toString().equals("CONNECT"))
+                    mainPresenter.connectToUsb(spinnerBaudRate.getSelectedItem().toString());
+                else
+                    mainPresenter.disconnectFromUsb();
+                break;
+            case R.id.btnShowDialogConnect:
+                dialogConnectToUav.show();
+                break;
+            case R.id.btnRefreshUsb:
+                mainPresenter.refreshDeviceList();
+                break;
+            case R.id.btnTakeoffLanding:
+                if (btnTakeoffLanding.getText().toString().equals("TAKE OFF")) {
+                    mainPresenter.sendAutoTakeOff();
+                    btnTakeoffLanding.setText("LANDING");
+                } else {
+                    mainPresenter.sendAutoLanding();
+                    btnTakeoffLanding.setText("TAKE OFF");
+                }
+                break;
         }
     }
 }

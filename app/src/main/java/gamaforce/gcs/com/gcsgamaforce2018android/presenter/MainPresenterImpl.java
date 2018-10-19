@@ -3,6 +3,8 @@ package gamaforce.gcs.com.gcsgamaforce2018android.presenter;
 import android.content.Context;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
+import android.os.AsyncTask;
+import android.os.SystemClock;
 import android.util.Log;
 
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
@@ -11,11 +13,18 @@ import com.hoho.android.usbserial.driver.UsbSerialProber;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import gamaforce.gcs.com.gcsgamaforce2018android.contract.MainContract;
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.Scheduler;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 public class MainPresenterImpl implements MainContract.Presenter, SerialInputOutputManager.Listener {
 
@@ -24,8 +33,12 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
     private UsbManager usbManager;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private UsbSerialPort usbSerialPort = null;
+    private UsbSerialDriver usbSerialDriver;
 
     private MainContract.View mainView;
+    private Observable<String> dataObservable = null;
+    private Observer<String> dataObserver = null;
+    private Disposable disposable = null;
 
     public MainPresenterImpl(Context context, MainContract.View mainView) {
         this.mainView = mainView;
@@ -33,8 +46,40 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
     }
 
     @Override
+    public void refreshDeviceList() {
+        new AsyncTask<Void, Void, List<UsbSerialPort>>() {
+            @Override
+            protected List<UsbSerialPort> doInBackground(Void... params) {
+                Log.i(TAG, "Refreshing device list ...");
+                SystemClock.sleep(1000);
+
+                final List<UsbSerialDriver> drivers =
+                        UsbSerialProber.getDefaultProber().findAllDrivers(usbManager);
+
+                final List<UsbSerialPort> result = new ArrayList<>();
+                for (final UsbSerialDriver driver : drivers) {
+                    final List<UsbSerialPort> ports = driver.getPorts();
+                    result.addAll(ports);
+                }
+
+                return result;
+            }
+
+            @Override
+            protected void onPostExecute(List<UsbSerialPort> result) {
+                if (!result.isEmpty()) {
+                    usbSerialDriver = result.get(0).getDriver();
+                    Log.i(TAG, "Done refreshing, " + result.size() + " entries found.");
+                    mainView.showToastMessage("USB detected!");
+//                    mainView.enableButtonConnect(true);
+                }
+            }
+
+        }.execute((Void) null);
+    }
+
+    @Override
     public void connectToUsb(String baudRate) {
-        UsbSerialDriver usbSerialDriver = getFirstAvailableUsb();
         if (usbSerialDriver != null) {
             UsbDeviceConnection connection = usbManager.openDevice(usbSerialDriver.getDevice());
             usbSerialPort = usbSerialDriver.getPorts().get(0);
@@ -56,24 +101,14 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
     @Override
     public void disconnectFromUsb() {
         try {
+            mainView.setDisposable(null);
             usbSerialPort.close();
+//            mainView.enableButtonConnect(false);
             mainView.dismissDialogConnect();
             mainView.changeBtnConnectTextToConnect();
             mainView.showToastMessage("Disconnected from USB...");
         } catch (IOException e) {
             Log.e(TAG, "Error disconnecting usb : " + e.getMessage());
-        }
-    }
-
-    // CONTROL MODE : u#control_mode* --> 0 = Manual, 1 = Auto
-
-    @Override
-    public void writeToUsb(int planeMode, int command) {
-        try {
-            String fullCommand = "@#" + planeMode + "#" + command + "#*";
-            usbSerialPort.write(fullCommand.getBytes(), 3000);
-        } catch (IOException e) {
-            Log.e(TAG, "Error write to usb : " + e.getMessage());
         }
     }
 
@@ -88,41 +123,45 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
     }
 
     @Override
+    public void setControlMode(int controlMode) {
+        try {
+            String fullCommand = "u#" + controlMode + "*";
+            usbSerialPort.write(fullCommand.getBytes(), 3000);
+        } catch (IOException e) {
+            Log.e(TAG, "Error write to usb : " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void sendAutoTakeOff() {
+        try {
+            String fullCommand = "t";
+            usbSerialPort.write(fullCommand.getBytes(), 3000);
+        } catch (IOException e) {
+            Log.e(TAG, "Error write to usb : " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void sendAutoLanding() {
+        try {
+            String fullCommand = "l";
+            usbSerialPort.write(fullCommand.getBytes(), 3000);
+        } catch (IOException e) {
+            Log.e(TAG, "Error write to usb : " + e.getMessage());
+        }
+    }
+
+    @Override
     public void onNewData(byte[] data) {
         String retrievedData = new String(data);
         if (isDataValid(retrievedData)) {
             // @#alt#yaw#pitch#roll#lat#lng#air_speed#battery#plane_mode(vtol atau plane)#gcs_command#control_mode(manual atau auto)#arming(0 atau 1)#*
-            Log.d(TAG, "Valid data : " + retrievedData);
-            mainView.showAltitude(parseData(1, retrievedData));
-            mainView.showYaw(parseData(2, retrievedData));
-            mainView.showPitch(parseData(3, retrievedData));
-            mainView.showRoll(parseData(4, retrievedData));
-            mainView.setAttitudeIndicator(parseData(3, retrievedData), parseData(4, retrievedData));
-//            mainView.setDronePositionOnGoogleMaps(
-//                    parseData(5, retrievedData),
-//                    parseData(6, retrievedData),
-//                    parseData(2, retrievedData)
-//            );
-            mainView.showAirSpeed(parseData(7, retrievedData));
-            mainView.showBattery(parseData(8, retrievedData));
-
-            int planeMode = (int) parseData(9, retrievedData);
-            if (planeMode == 0)
-                mainView.showPlaneMode("VTOL");
-            else
-                mainView.showPlaneMode("PLANE");
-
-            int gcsCommand = (int) parseData(10, retrievedData);
-            mainView.showGcsCommand(gcsCommand);
-
-            int controlMode = (int) parseData(11, retrievedData);
-            mainView.showControlMode(controlMode);
-
-            int armStatus = (int) parseData(12, retrievedData);
-            if (armStatus == 0)
-                mainView.showArmStatus("DISARMED");
-            else
-                mainView.showArmStatus("ARMED");
+            dataObservable = getDataObservable(retrievedData);
+            dataObserver = getDataObserver();
+            dataObservable.observeOn(Schedulers.io())
+                    .subscribeOn(AndroidSchedulers.mainThread())
+                    .subscribe(dataObserver);
         } else {
             Log.e(TAG, "Invalid data : " + retrievedData);
         }
@@ -167,4 +206,63 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
         }
     }
 
+    private Observer<String> getDataObserver() {
+        return new Observer<String>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+                Log.d(TAG, "onSubscribe");
+                disposable = d;
+                mainView.setDisposable(disposable);
+            }
+
+            @Override
+            public void onNext(String retrievedData) {
+                Log.d(TAG, retrievedData);
+                mainView.showAltitude(parseData(1, retrievedData));
+                mainView.showYaw(parseData(2, retrievedData));
+                mainView.showPitch(parseData(3, retrievedData));
+                mainView.showRoll(parseData(4, retrievedData));
+                mainView.setAttitudeIndicator(parseData(3, retrievedData), parseData(4, retrievedData));
+                mainView.setDronePositionOnGoogleMaps(
+                        parseData(5, retrievedData),
+                        parseData(6, retrievedData),
+                        parseData(2, retrievedData)
+                );
+                mainView.showAirSpeed(parseData(7, retrievedData));
+                mainView.showBattery(parseData(8, retrievedData));
+
+                int planeMode = (int) parseData(9, retrievedData);
+                if (planeMode == 0)
+                    mainView.showPlaneMode("VTOL");
+                else
+                    mainView.showPlaneMode("PLANE");
+
+                int gcsCommand = (int) parseData(10, retrievedData);
+//                mainView.showGcsCommand(gcsCommand);
+
+                int controlMode = (int) parseData(11, retrievedData);
+                mainView.showControlMode(controlMode);
+
+                int armStatus = (int) parseData(12, retrievedData);
+                if (armStatus == 0)
+                    mainView.showArmStatus("DISARMED");
+                else
+                    mainView.showArmStatus("ARMED");
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.e(TAG, e.getMessage());
+            }
+
+            @Override
+            public void onComplete() {
+                Log.d(TAG, "onComplete");
+            }
+        };
+    }
+
+    private io.reactivex.Observable<String> getDataObservable(String receivedData) {
+        return io.reactivex.Observable.just(receivedData);
+    }
 }

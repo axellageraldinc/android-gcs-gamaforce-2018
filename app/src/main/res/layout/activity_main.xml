@@ -130,7 +130,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="4dp"
                     android:layout_marginEnd="8dp"
-                    android:text="Battery (%)"
+                    android:text="Battery (Volt)"
                     android:textAlignment="center"
                     android:textColor="@android:color/background_light"
                     android:textSize="11sp"
@@ -257,7 +257,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="4dp"
                     android:layout_marginEnd="8dp"
-                    android:text="Air Speed (m/s)"
+                    android:text="Ground Speed (m/s)"
                     android:textAlignment="center"
                     android:textColor="@android:color/background_light"
                     android:textSize="11sp"
@@ -494,16 +494,17 @@
     </LinearLayout>
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/btnShowSendCommandDialog"
+        android:id="@+id/btnRefreshUsb"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:clickable="true"
+        android:visibility="gone"
         app:fabSize="mini"
         app:layout_constraintBottom_toBottomOf="@+id/btnShowDialogConnect"
         app:layout_constraintEnd_toStartOf="@+id/btnShowDialogConnect"
         app:layout_constraintTop_toTopOf="@+id/btnShowDialogConnect"
-        app:srcCompat="@drawable/ic_send" />
+        app:srcCompat="@drawable/quantum_ic_refresh_white_24" />
 
     <Switch
         android:id="@+id/switchArm"
@@ -513,6 +514,32 @@
         android:text="DISARMED"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="@+id/btnShowDialogConnect"
-        app:layout_constraintTop_toBottomOf="@+id/btnShowSendCommandDialog" />
+        app:layout_constraintTop_toBottomOf="@+id/btnShowDialogConnect" />
+
+    <Switch
+        android:id="@+id/switchControlMode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:text="MANUAL"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/attitude_indicator"
+        app:layout_constraintEnd_toEndOf="@+id/switchArm"
+        app:layout_constraintTop_toBottomOf="@+id/switchArm" />
+
+    <Button
+        android:id="@+id/btnTakeoffLanding"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/button_primary"
+        android:text="TAKE OFF"
+        android:textColor="@android:color/white"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+        app:layout_constraintEnd_toEndOf="@+id/attitude_indicator"
+        app:layout_constraintTop_toBottomOf="@+id/attitude_indicator" />
 
 </android.support.constraint.ConstraintLayout>
