@@ -80,6 +80,7 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
 
     @Override
     public void connectToUsb(String baudRate) {
+        UsbSerialDriver usbSerialDriver = getFirstAvailableUsb();
         if (usbSerialDriver != null) {
             UsbDeviceConnection connection = usbManager.openDevice(usbSerialDriver.getDevice());
             usbSerialPort = usbSerialDriver.getPorts().get(0);
