@@ -396,32 +396,32 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-//        switch (buttonView.getId()) {
-//            case R.id.switchArm:
-//                if (btnConnect.getText().equals("CONNECT")) {
-//                    showToastMessage("You have to connect to UAV first!");
-//                    switchArm.setChecked(false);
-//                } else {
-//                    if (isChecked) {
-//                        mainPresenter.setArmStatus(1);
-//                    } else {
-//                        mainPresenter.setArmStatus(0);
-//                    }
-//                }
-//                break;
-//            case R.id.switchControlMode:
-//                if (btnConnect.getText().equals("CONNECT")) {
-//                    showToastMessage("You have to connect to UAV first!");
-//                    switchControlMode.setChecked(false);
-//                } else {
-//                    if (isChecked) {
-//                        mainPresenter.setControlMode(1);
-//                    } else {
-//                        mainPresenter.setControlMode(0);
-//                    }
-//                }
-//                break;
-//        }
+        switch (buttonView.getId()) {
+            case R.id.switchArm:
+                if (btnConnect.getText().equals("CONNECT")) {
+                    showToastMessage("You have to connect to UAV first!");
+                    switchArm.setChecked(false);
+                } else {
+                    if (isChecked) {
+                        mainPresenter.setArmStatus(1);
+                    } else {
+                        mainPresenter.setArmStatus(0);
+                    }
+                }
+                break;
+            case R.id.switchControlMode:
+                if (btnConnect.getText().equals("CONNECT")) {
+                    showToastMessage("You have to connect to UAV first!");
+                    switchControlMode.setChecked(false);
+                } else {
+                    if (isChecked) {
+                        mainPresenter.setControlMode(1);
+                    } else {
+                        mainPresenter.setControlMode(0);
+                    }
+                }
+                break;
+        }
     }
 
     @Override
