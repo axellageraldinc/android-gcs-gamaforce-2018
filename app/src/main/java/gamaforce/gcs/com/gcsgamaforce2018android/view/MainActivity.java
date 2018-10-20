@@ -113,21 +113,11 @@ public class MainActivity extends AppCompatActivity implements
 
         switchArm = findViewById(R.id.switchArm);
         switchArm.setChecked(false);
-        switchArm.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-
-            }
-        });
+        switchArm.setOnCheckedChangeListener(this);
 
         switchControlMode = findViewById(R.id.switchControlMode);
         switchControlMode.setChecked(false);
-        switchControlMode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-
-            }
-        });
+        switchControlMode.setOnCheckedChangeListener(this);
 
         btnTakeoffLanding = findViewById(R.id.btnTakeoffLanding);
         btnTakeoffLanding.setOnClickListener(this);
