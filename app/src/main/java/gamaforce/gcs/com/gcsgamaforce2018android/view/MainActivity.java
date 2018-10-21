@@ -66,7 +66,6 @@ public class MainActivity extends AppCompatActivity implements
     private Marker marker;
     private BitmapDescriptor uavMarker;
     private Polyline uavPathPolyline;
-    private float oldYaw;
 
     private Disposable disposable = null;
 
@@ -346,8 +345,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void moveMarker(LatLng latLng, double yaw) {
-        float rotationDegree = (float) yaw - oldYaw;
-        oldYaw = (float) yaw;
+        float rotationDegree = (float) yaw;
         if(this.uavMarker == null){
             uavMarker = BitmapDescriptorFactory.fromResource(R.mipmap.ic_plane);
         }
@@ -370,7 +368,7 @@ public class MainActivity extends AppCompatActivity implements
 
             this.uavPathPolyline = googleMap.addPolyline(new PolylineOptions()
                     .add(firstLocation, lastLocation)
-                    .width(30)
+                    .width(20)
                     .color(R.color.colorAccent)
                     .geodesic(true));
 
