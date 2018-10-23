@@ -30,12 +30,14 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.hoho.android.usbserial.driver.UsbSerialDriver;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import gamaforce.gcs.com.gcsgamaforce2018android.R;
 import gamaforce.gcs.com.gcsgamaforce2018android.contract.MainContract;
+import gamaforce.gcs.com.gcsgamaforce2018android.model.UsbComPort;
 import gamaforce.gcs.com.gcsgamaforce2018android.presenter.MainPresenterImpl;
 import io.reactivex.disposables.Disposable;
 
@@ -52,12 +54,18 @@ public class MainActivity extends AppCompatActivity implements
     private MainContract.Presenter mainPresenter;
 
     private Dialog dialogConnectToUav;
-    private Dialog dialogSendCommandToUav;
+    private Spinner spinnerComPort;
     private Spinner spinnerBaudRate;
-    private Spinner spinnerCommand;
     private Button btnConnect;
     private AttitudeIndicator attitudeIndicator;
-    private TextView txtAltitude, txtYaw, txtPitch, txtRoll, txtAirSpeed, txtBattery, txtMode, txtArmStatus;
+    private TextView txtAltitude;
+    private TextView txtYaw;
+    private TextView txtPitch;
+    private TextView txtRoll;
+    private TextView txtAirSpeed;
+    private TextView txtBattery;
+    private TextView txtMode;
+    private TextView txtArmStatus;
     private Switch switchArm;
     private Switch switchControlMode;
     private Button btnTakeoffLanding;
@@ -69,7 +77,9 @@ public class MainActivity extends AppCompatActivity implements
 
     private Disposable disposable = null;
 
-    private int planeMode=0, controlMode=0, armStatus=0;
+    private int planeMode=0;
+    private int controlMode=0;
+    private int armStatus=0;
     private boolean isInitialArmStatusHasBeenSet = false;
     private boolean isInitialControlModeHasBeenSet = false;
 
@@ -105,10 +115,12 @@ public class MainActivity extends AppCompatActivity implements
         dialogConnectToUav.setContentView(R.layout.dialog_connect);
         int width = (int)(getResources().getDisplayMetrics().widthPixels*0.5);
         dialogConnectToUav.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
-        spinnerBaudRate = dialogConnectToUav.findViewById(R.id.spinnerCommand);
+        spinnerComPort = dialogConnectToUav.findViewById(R.id.spinnerComPort);
+        spinnerBaudRate = dialogConnectToUav.findViewById(R.id.spinnerBaudRate);
         setSpinnerBaudRateContent();
         btnConnect = dialogConnectToUav.findViewById(R.id.button_connect);
         btnConnect.setOnClickListener(this);
+        btnConnect.setEnabled(false);
 
         switchArm = findViewById(R.id.switchArm);
         switchArm.setChecked(false);
@@ -148,6 +160,17 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void changeBtnConnectTextToDisconnect() {
         btnConnect.setText("DISCONNECT");
+    }
+
+    @Override
+    public void populateSpinnerComPort(List<UsbSerialDriver> usbSerialDrivers) {
+        List<String> usbSerialDriverTextList = new ArrayList<>();
+        for (UsbSerialDriver usbSerialDriver : usbSerialDrivers) {
+            usbSerialDriverTextList.add(usbSerialDriver.getDevice().getDeviceName());
+        }
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, usbSerialDriverTextList);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerComPort.setAdapter(spinnerAdapter);
     }
 
     @Override
@@ -441,12 +464,16 @@ public class MainActivity extends AppCompatActivity implements
                 mainPresenter.refreshDeviceList();
                 break;
             case R.id.btnTakeoffLanding:
-                if (btnTakeoffLanding.getText().toString().equals("TAKE OFF")) {
-                    mainPresenter.sendAutoTakeOff();
-                    btnTakeoffLanding.setText("LANDING");
+                if(btnConnect.getText().toString().equals("CONNECT")) {
+                    showToastMessage("You have to connect to UAV first!");
                 } else {
-                    mainPresenter.sendAutoLanding();
-                    btnTakeoffLanding.setText("TAKE OFF");
+                    if (btnTakeoffLanding.getText().toString().equals("TAKE OFF")) {
+                        mainPresenter.sendAutoTakeOff();
+                        btnTakeoffLanding.setText("LANDING");
+                    } else {
+                        mainPresenter.sendAutoLanding();
+                        btnTakeoffLanding.setText("TAKE OFF");
+                    }
                 }
                 break;
         }

@@ -499,7 +499,6 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:clickable="true"
-        android:visibility="gone"
         app:fabSize="mini"
         app:layout_constraintBottom_toBottomOf="@+id/btnShowDialogConnect"
         app:layout_constraintEnd_toStartOf="@+id/btnShowDialogConnect"

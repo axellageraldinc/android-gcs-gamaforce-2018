@@ -1,5 +1,10 @@
 package gamaforce.gcs.com.gcsgamaforce2018android.contract;
 
+import com.hoho.android.usbserial.driver.UsbSerialDriver;
+
+import java.util.List;
+
+import gamaforce.gcs.com.gcsgamaforce2018android.model.UsbComPort;
 import io.reactivex.disposables.Disposable;
 
 public interface MainContract {
@@ -8,6 +13,7 @@ public interface MainContract {
         void dismissDialogConnect();
         void changeBtnConnectTextToConnect();
         void changeBtnConnectTextToDisconnect();
+        void populateSpinnerComPort(List<UsbSerialDriver> usbSerialDrivers);
 
         void setAttitudeIndicator(double pitch, double roll);
         void showAltitude(double altitude);

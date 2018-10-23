@@ -1,10 +1,13 @@
 package gamaforce.gcs.com.gcsgamaforce2018android.presenter;
 
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
-import android.os.AsyncTask;
-import android.os.SystemClock;
 import android.util.Log;
 
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
@@ -13,7 +16,6 @@ import com.hoho.android.usbserial.driver.UsbSerialProber;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -21,7 +23,6 @@ import java.util.concurrent.Executors;
 import gamaforce.gcs.com.gcsgamaforce2018android.contract.MainContract;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
-import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -31,6 +32,7 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
     private static final String TAG = MainPresenterImpl.class.getSimpleName();
 
     private UsbManager usbManager;
+    private SerialInputOutputManager serialInputOutputManager;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private UsbSerialPort usbSerialPort = null;
     private UsbSerialDriver usbSerialDriver;
@@ -39,63 +41,41 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
     private Observable<String> dataObservable = null;
     private Observer<String> dataObserver = null;
     private Disposable disposable = null;
+    private Context context;
+
+    private PendingIntent usbPermissionIntent;
+    private static final String ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION";
+
+    private IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
+    private String baudRate;
 
     public MainPresenterImpl(Context context, MainContract.View mainView) {
         this.mainView = mainView;
+        this.context = context;
         usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
     }
 
     @Override
     public void refreshDeviceList() {
-        new AsyncTask<Void, Void, List<UsbSerialPort>>() {
-            @Override
-            protected List<UsbSerialPort> doInBackground(Void... params) {
-                Log.i(TAG, "Refreshing device list ...");
-                SystemClock.sleep(1000);
-
-                final List<UsbSerialDriver> drivers =
-                        UsbSerialProber.getDefaultProber().findAllDrivers(usbManager);
-
-                final List<UsbSerialPort> result = new ArrayList<>();
-                for (final UsbSerialDriver driver : drivers) {
-                    final List<UsbSerialPort> ports = driver.getPorts();
-                    result.addAll(ports);
-                }
-
-                return result;
-            }
-
-            @Override
-            protected void onPostExecute(List<UsbSerialPort> result) {
-                if (!result.isEmpty()) {
-                    usbSerialDriver = result.get(0).getDriver();
-                    Log.i(TAG, "Done refreshing, " + result.size() + " entries found.");
-                    mainView.showToastMessage("USB detected!");
-//                    mainView.enableButtonConnect(true);
-                }
-            }
-
-        }.execute((Void) null);
+        mainView.showToastMessage("Refreshing device list");
+        List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager);
+        mainView.populateSpinnerComPort(availableDrivers);
+        if (availableDrivers.isEmpty()) {
+            mainView.enableButtonConnect(false);
+        } else {
+            mainView.enableButtonConnect(true);
+        }
     }
 
     @Override
     public void connectToUsb(String baudRate) {
-        UsbSerialDriver usbSerialDriver = getFirstAvailableUsb();
+        usbSerialDriver = getFirstAvailableUsb();
+        this.baudRate = baudRate;
         if (usbSerialDriver != null) {
-            UsbDeviceConnection connection = usbManager.openDevice(usbSerialDriver.getDevice());
-            usbSerialPort = usbSerialDriver.getPorts().get(0);
-            try {
-                usbSerialPort.open(connection);
-                usbSerialPort.setParameters(Integer.parseInt(baudRate), 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
-                usbSerialPort.setDTR(true);
-                mainView.dismissDialogConnect();
-                mainView.changeBtnConnectTextToDisconnect();
-                mainView.showToastMessage("Successfully connected to USB...");
-                beginRetrievingData();
-            } catch (IOException e) {
-                Log.e(TAG, "Error connecting to usb : " + e.getMessage());
-                mainView.showToastMessage("Error connecting to USB : " + e.getMessage());
-            }
+            usbPermissionIntent = PendingIntent.getBroadcast(context, 0,
+                    new Intent(ACTION_USB_PERMISSION), 0);
+            context.registerReceiver(usbBroadcast, filter);
+            usbManager.requestPermission(usbSerialDriver.getDevice(), usbPermissionIntent);
         }
     }
 
@@ -103,11 +83,13 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
     public void disconnectFromUsb() {
         try {
             mainView.setDisposable(null);
+            serialInputOutputManager.stop();
+            context.unregisterReceiver(usbBroadcast);
             usbSerialPort.close();
-//            mainView.enableButtonConnect(false);
             mainView.dismissDialogConnect();
             mainView.changeBtnConnectTextToConnect();
             mainView.showToastMessage("Disconnected from USB...");
+            refreshDeviceList();
         } catch (IOException e) {
             Log.e(TAG, "Error disconnecting usb : " + e.getMessage());
         }
@@ -176,7 +158,7 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
 
     private void beginRetrievingData() {
         //TODO : Consider migrating this serialInputOutputManager initiation using Dagger2
-        SerialInputOutputManager serialInputOutputManager =
+        serialInputOutputManager =
                 new SerialInputOutputManager(usbSerialPort, this);
         executorService.submit(serialInputOutputManager);
     }
@@ -194,7 +176,7 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
     private boolean isDataValid(String data) {
         String validData = data.split("\\*")[0];
         String[] dataSplit = validData.split("#");
-        return dataSplit.length == 13 &&
+        return dataSplit.length == 14 &&
                 !dataSplit[0].contains("\\*");
     }
 
@@ -266,4 +248,46 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
     private io.reactivex.Observable<String> getDataObservable(String receivedData) {
         return io.reactivex.Observable.just(receivedData);
     }
+
+    private final BroadcastReceiver usbBroadcast = new BroadcastReceiver() {
+
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (ACTION_USB_PERMISSION.equals(action)) {
+                synchronized (this) {
+                    UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+
+                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                        if(device != null) {
+                            Log.d(TAG, "permission granted for device " + device);
+                            UsbDeviceConnection connection = usbManager.openDevice(usbSerialDriver.getDevice());
+                            usbSerialPort = usbSerialDriver.getPorts().get(0);
+                            try {
+                                usbSerialPort.open(connection);
+                                usbSerialPort.setParameters(Integer.parseInt(baudRate), 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
+                                usbSerialPort.setDTR(true);
+                                mainView.dismissDialogConnect();
+                                mainView.changeBtnConnectTextToDisconnect();
+                                mainView.showToastMessage("Successfully connected to USB...");
+                                beginRetrievingData();
+                            } catch (IOException e) {
+                                Log.e(TAG, "Error connecting to usb : " + e.getMessage());
+                                mainView.showToastMessage("Error connecting to USB : " + e.getMessage());
+                            }
+                        }
+                    }
+                    else {
+                        Log.d(TAG, "permission denied for device " + device);
+                        mainView.showToastMessage("Please allow USB permission");
+                    }
+                }
+            } else if (UsbManager.ACTION_USB_ACCESSORY_DETACHED.equals(action)) {
+                UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                if (device != null) {
+                    Log.d(TAG, "usb disconnected");
+                    disconnectFromUsb();
+                }
+            }
+        }
+    };
 }

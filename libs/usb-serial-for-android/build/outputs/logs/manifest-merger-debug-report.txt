@@ -1,37 +1,37 @@
 -- Merging decision tree log ---
 manifest
-ADDED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml:2:1-5:44
-INJECTED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml:2:1-5:44
-INJECTED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml:2:1-5:44
-INJECTED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml:2:1-5:44
-INJECTED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml:2:1-5:44
-INJECTED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml:2:1-5:44
-INJECTED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml:2:1-5:44
+ADDED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml:2:1-5:44
+INJECTED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml:2:1-5:44
+INJECTED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml:2:1-5:44
+INJECTED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml:2:1-5:44
+INJECTED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml:2:1-5:44
+INJECTED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml:2:1-5:44
+INJECTED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml:2:1-5:44
 	package
-		ADDED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml:3:7-43
-		INJECTED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml
-		INJECTED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml
+		ADDED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml:3:7-43
+		INJECTED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml
+		INJECTED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml
 	android:versionName
-		ADDED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml:5:7-32
-		INJECTED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml
-		INJECTED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml
+		ADDED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml:5:7-32
+		INJECTED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml
+		INJECTED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml
 	xmlns:android
-		ADDED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml:2:11-69
+		ADDED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml:2:11-69
 	android:versionCode
-		ADDED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml:4:7-30
-		INJECTED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml
-		INJECTED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml
+		ADDED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml:4:7-30
+		INJECTED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml
+		INJECTED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml
 uses-sdk
-INJECTED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml reason: use-sdk injection requested
-INJECTED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml
-INJECTED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml
-INJECTED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml
-INJECTED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml
+INJECTED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml
+INJECTED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml
+INJECTED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml
+INJECTED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml
 	android:targetSdkVersion
-		INJECTED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml
-		ADDED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml
-		INJECTED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml
+		INJECTED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml
+		ADDED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml
+		INJECTED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml
 	android:minSdkVersion
-		INJECTED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml
-		ADDED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml
-		INJECTED from E:\Devs\Android\android-gcs-gamaforce-2018\libs\usb-serial-for-android\src\main\AndroidManifest.xml
+		INJECTED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml
+		ADDED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml
+		INJECTED from /Users/axellageraldinc/Documents/Projects/GcsGamaforce2018Android/libs/usb-serial-for-android/src/main/AndroidManifest.xml
