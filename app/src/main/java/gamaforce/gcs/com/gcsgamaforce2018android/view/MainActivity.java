@@ -139,6 +139,7 @@ public class MainActivity extends AppCompatActivity implements
                 R.array.baud_rate_list, android.R.layout.simple_spinner_item);
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerBaudRate.setAdapter(spinnerAdapter);
+        spinnerBaudRate.setSelection(4);
     }
 
     @Override

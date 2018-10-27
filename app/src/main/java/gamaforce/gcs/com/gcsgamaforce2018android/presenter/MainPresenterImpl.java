@@ -174,10 +174,15 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
     }
 
     private boolean isDataValid(String data) {
-        String validData = data.split("\\*")[0];
-        String[] dataSplit = validData.split("#");
-        return dataSplit.length == 14 &&
-                !dataSplit[0].contains("\\*");
+        if (data.split("\\*").length > 1) {
+            String validData = data.split("\\*")[0];
+            String[] dataSplit = validData.split("#");
+            return dataSplit.length == 13 &&
+                    !dataSplit[0].contains("\\*");
+        } else {
+            String[] splittedData = data.split("#");
+            return splittedData.length == 14 && !splittedData[0].equals("*");
+        }
     }
 
     private double parseData(int index, String data) {
