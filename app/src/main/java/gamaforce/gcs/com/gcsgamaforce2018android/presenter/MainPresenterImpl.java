@@ -177,8 +177,7 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
         if (data.split("\\*").length > 1) {
             String validData = data.split("\\*")[0];
             String[] dataSplit = validData.split("#");
-            return dataSplit.length == 13 &&
-                    !dataSplit[0].contains("\\*");
+            return dataSplit.length == 13 && !dataSplit[0].contains("\\*");
         } else {
             String[] splittedData = data.split("#");
             return splittedData.length == 14 && !splittedData[0].equals("*");

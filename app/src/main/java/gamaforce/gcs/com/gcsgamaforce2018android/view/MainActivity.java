@@ -82,6 +82,7 @@ public class MainActivity extends AppCompatActivity implements
     private int armStatus=0;
     private boolean isInitialArmStatusHasBeenSet = false;
     private boolean isInitialControlModeHasBeenSet = false;
+    private boolean isInitialDronePositionHasBeenSet = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -323,7 +324,11 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void run() {
                 moveMarker(new LatLng(latitude, longitude), yaw);
-                drawPolyline(new LatLng(latitude, longitude));
+                if (!isInitialDronePositionHasBeenSet) {
+                    isInitialDronePositionHasBeenSet = true;
+                } else {
+                    drawPolyline(new LatLng(latitude, longitude));
+                }
             }
         });
     }
