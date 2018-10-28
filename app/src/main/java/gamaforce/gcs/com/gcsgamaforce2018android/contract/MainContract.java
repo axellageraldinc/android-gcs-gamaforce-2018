@@ -26,6 +26,8 @@ public interface MainContract {
         void showControlMode(int controlMode);
         void showArmStatus(String armStatus);
         void setTakeOffLanding(boolean isTakeOff);
+        void showMissionButton();
+        void hideMissionButton();
 
         void setDronePositionOnGoogleMaps(double latitude, double longitude, double yaw);
 
@@ -41,5 +43,6 @@ public interface MainContract {
         void setControlMode(int controlMode);
         void sendAutoTakeOff();
         void sendAutoLanding();
+        void sendMission(int mission);
     }
 }

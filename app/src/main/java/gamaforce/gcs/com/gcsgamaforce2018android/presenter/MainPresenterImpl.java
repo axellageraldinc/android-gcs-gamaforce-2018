@@ -82,6 +82,7 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
     @Override
     public void disconnectFromUsb() {
         try {
+            mainView.hideMissionButton();
             mainView.setDisposable(null);
             serialInputOutputManager.stop();
             context.unregisterReceiver(usbBroadcast);
@@ -129,6 +130,29 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
     public void sendAutoLanding() {
         try {
             String fullCommand = "l";
+            usbSerialPort.write(fullCommand.getBytes(), 3000);
+        } catch (IOException e) {
+            Log.e(TAG, "Error write to usb : " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void sendMission(int mission) {
+        try {
+            String fullCommand;
+            switch (mission) {
+                case 0:
+                    fullCommand = "m#1*";
+                    break;
+                case 1:
+                    fullCommand = "m#2*";
+                    break;
+                case 2:
+                    fullCommand = "m#3*";
+                    break;
+                default:
+                    fullCommand = "m#1*";
+            }
             usbSerialPort.write(fullCommand.getBytes(), 3000);
         } catch (IOException e) {
             Log.e(TAG, "Error write to usb : " + e.getMessage());
@@ -272,6 +296,7 @@ public class MainPresenterImpl implements MainContract.Presenter, SerialInputOut
                                 usbSerialPort.setDTR(true);
                                 mainView.dismissDialogConnect();
                                 mainView.changeBtnConnectTextToDisconnect();
+                                mainView.showMissionButton();
                                 mainView.showToastMessage("Successfully connected to USB...");
                                 beginRetrievingData();
                             } catch (IOException e) {
