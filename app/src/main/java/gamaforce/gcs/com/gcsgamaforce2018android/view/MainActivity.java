@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements
         FloatingActionButton btnRefreshUsb = findViewById(R.id.btnRefreshUsb);
         btnRefreshUsb.setOnClickListener(this);
         btnShowDialogMission = findViewById(R.id.btnMission);
-        btnShowDialogConnect.setOnClickListener(this);
+        btnShowDialogMission.setOnClickListener(this);
 
         dialogConnectToUav = new Dialog(MainActivity.this);
         dialogConnectToUav.requestWindowFeature(Window.FEATURE_NO_TITLE);
