@@ -30,4 +30,10 @@
         <item>MANUAL</item>
         <item>AUTO</item>
     </string-array>
+
+    <string-array name="mission_list">
+        <item>MISSION 1</item>
+        <item>MISSION 2</item>
+        <item>MISSION 3</item>
+    </string-array>
 </resources>

@@ -54,9 +54,13 @@ public class MainActivity extends AppCompatActivity implements
     private MainContract.Presenter mainPresenter;
 
     private Dialog dialogConnectToUav;
+    private Dialog dialogMission;
     private Spinner spinnerComPort;
     private Spinner spinnerBaudRate;
+    private Spinner spinnerMission;
+    private FloatingActionButton btnShowDialogMission;
     private Button btnConnect;
+    private Button btnSendMission;
     private AttitudeIndicator attitudeIndicator;
     private TextView txtAltitude;
     private TextView txtYaw;
@@ -110,6 +114,8 @@ public class MainActivity extends AppCompatActivity implements
         btnShowDialogConnect.setOnClickListener(this);
         FloatingActionButton btnRefreshUsb = findViewById(R.id.btnRefreshUsb);
         btnRefreshUsb.setOnClickListener(this);
+        btnShowDialogMission = findViewById(R.id.btnMission);
+        btnShowDialogConnect.setOnClickListener(this);
 
         dialogConnectToUav = new Dialog(MainActivity.this);
         dialogConnectToUav.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -122,6 +128,14 @@ public class MainActivity extends AppCompatActivity implements
         btnConnect = dialogConnectToUav.findViewById(R.id.button_connect);
         btnConnect.setOnClickListener(this);
         btnConnect.setEnabled(false);
+
+        setSpinnerMissionContent();
+        dialogMission = new Dialog(MainActivity.this);
+        dialogMission.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogMission.setContentView(R.layout.dialog_mission);
+        dialogMission.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+        btnSendMission = dialogConnectToUav.findViewById(R.id.button_send_mission);
+        btnSendMission.setOnClickListener(this);
 
         switchArm = findViewById(R.id.switchArm);
         switchArm.setChecked(false);
@@ -141,6 +155,14 @@ public class MainActivity extends AppCompatActivity implements
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerBaudRate.setAdapter(spinnerAdapter);
         spinnerBaudRate.setSelection(4);
+    }
+
+    private void setSpinnerMissionContent() {
+        ArrayAdapter<CharSequence> spinnerAdapter = ArrayAdapter.createFromResource(this,
+                R.array.mission_list, android.R.layout.simple_spinner_item);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerMission.setAdapter(spinnerAdapter);
+        spinnerMission.setSelection(0);
     }
 
     @Override
@@ -318,6 +340,16 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
+    public void showMissionButton() {
+        btnShowDialogMission.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void hideMissionButton() {
+        btnShowDialogMission.setVisibility(View.GONE);
+    }
+
+    @Override
     public void setDronePositionOnGoogleMaps(final double latitude, final double longitude,
                                              final double yaw) {
         runOnUiThread(new Runnable() {
@@ -481,6 +513,12 @@ public class MainActivity extends AppCompatActivity implements
                         btnTakeoffLanding.setText("TAKE OFF");
                     }
                 }
+                break;
+            case R.id.btnMission:
+                dialogMission.show();
+                break;
+            case R.id.button_send_mission:
+                mainPresenter.sendMission(spinnerMission.getSelectedItemPosition());
                 break;
         }
     }
