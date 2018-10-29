@@ -117,25 +117,9 @@ public class MainActivity extends AppCompatActivity implements
         btnShowDialogMission = findViewById(R.id.btnMission);
         btnShowDialogMission.setOnClickListener(this);
 
-        dialogConnectToUav = new Dialog(MainActivity.this);
-        dialogConnectToUav.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialogConnectToUav.setContentView(R.layout.dialog_connect);
         int width = (int)(getResources().getDisplayMetrics().widthPixels*0.5);
-        dialogConnectToUav.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
-        spinnerComPort = dialogConnectToUav.findViewById(R.id.spinnerComPort);
-        spinnerBaudRate = dialogConnectToUav.findViewById(R.id.spinnerBaudRate);
-        setSpinnerBaudRateContent();
-        btnConnect = dialogConnectToUav.findViewById(R.id.button_connect);
-        btnConnect.setOnClickListener(this);
-        btnConnect.setEnabled(false);
-
-        setSpinnerMissionContent();
-        dialogMission = new Dialog(MainActivity.this);
-        dialogMission.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialogMission.setContentView(R.layout.dialog_mission);
-        dialogMission.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
-        btnSendMission = dialogConnectToUav.findViewById(R.id.button_send_mission);
-        btnSendMission.setOnClickListener(this);
+        setUpDialogConnectToUav(width);
+        setUpDialogMission(width);
 
         switchArm = findViewById(R.id.switchArm);
         switchArm.setChecked(false);
@@ -147,6 +131,30 @@ public class MainActivity extends AppCompatActivity implements
 
         btnTakeoffLanding = findViewById(R.id.btnTakeoffLanding);
         btnTakeoffLanding.setOnClickListener(this);
+    }
+
+    private void setUpDialogConnectToUav(int width) {
+        dialogConnectToUav = new Dialog(MainActivity.this);
+        dialogConnectToUav.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogConnectToUav.setContentView(R.layout.dialog_connect);
+        dialogConnectToUav.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+        spinnerComPort = dialogConnectToUav.findViewById(R.id.spinnerComPort);
+        spinnerBaudRate = dialogConnectToUav.findViewById(R.id.spinnerBaudRate);
+        btnConnect = dialogConnectToUav.findViewById(R.id.button_connect);
+        btnConnect.setOnClickListener(this);
+        btnConnect.setEnabled(false);
+        setSpinnerBaudRateContent();
+    }
+
+    private void setUpDialogMission(int width) {
+        dialogMission = new Dialog(MainActivity.this);
+        dialogMission.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogMission.setContentView(R.layout.dialog_mission);
+        dialogMission.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+        btnSendMission = dialogMission.findViewById(R.id.button_send_mission);
+        spinnerMission = dialogMission.findViewById(R.id.spinnerMission);
+        btnSendMission.setOnClickListener(this);
+        setSpinnerMissionContent();
     }
 
     private void setSpinnerBaudRateContent() {
